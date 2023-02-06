@@ -95,7 +95,7 @@ public class Model extends Observable {
     }
     /** Search for row than can move to
      * */
-    public int Targetrow(int col, int row, int Top, int value){
+    public int Target(int col, int row, int Top, int value){
         for (int y = row + 1; y <= Top; y += 1){
             if (board.tile(col, y) != null){
                 if (board.tile(col, y).value() == value){
@@ -114,7 +114,9 @@ public class Model extends Observable {
         for (int y = board.size() - 2; y >= 0; y -= 1){
             Tile currenttile = board.tile(col, y);
             if (currenttile != null) {
-                int row = Targetrow(col, y, Top, currenttile.value());
+                int a = currenttile.col();
+                int b = currenttile.row();
+                int row = Target(col, y, Top, currenttile.value());
                 if (row != y) {
                     changed = true;
                     if (board.move(col, row, currenttile)) {
