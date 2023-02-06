@@ -138,6 +138,13 @@ public class Model extends Observable {
      * */
     public static boolean emptySpaceExists(Board b) {
         // TODO: Fill in this function.
+        for (int y = 0; y < b.size(); y += 1) {
+            for(int x = 0; x < b.size(); x += 1) {
+                if (b.tile(x, y) == null) {
+                    return true;
+                }
+            }
+        }
         return false;
     }
 
@@ -147,7 +154,40 @@ public class Model extends Observable {
      * given a Tile object t, we get its value with t.value().
      */
     public static boolean maxTileExists(Board b) {
-        // TODO: Fill in this function.
+        for (int y = 0; y < b.size(); y += 1) {
+            for(int x = 0; x < b.size(); x += 1) {
+                if (b.tile(x, y) != null && (b.tile(x, y).value() == MAX_PIECE)) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+    /**
+     * Returns true if any two adjacent tiles have equal values
+     * iterating through left to right, bottom to top
+     */
+    public static boolean twoAdjacentEqual(Board b) {
+        for (int y = 0; y < b.size(); y += 1) {
+            Tile prev = b.tile(y, 0);
+            for(int x = 1; x < b.size(); x += 1) {
+                Tile now = b.tile(y, x);
+                if (now.value() == prev.value()) {
+                    return true;
+                }
+                prev = now;
+            }
+        }
+        for (int x = 0; x < b.size(); x += 1) {
+            Tile prev = b.tile(0, x);
+            for(int y = 1; y < b.size(); y += 1) {
+                Tile now = b.tile(y, x);
+                if (now.value() == prev.value()) {
+                    return true;
+                }
+                prev = now;
+            }
+        }
         return false;
     }
 
@@ -159,6 +199,9 @@ public class Model extends Observable {
      */
     public static boolean atLeastOneMoveExists(Board b) {
         // TODO: Fill in this function.
+        if (emptySpaceExists(b) || twoAdjacentEqual(b)) {
+            return true;
+        }
         return false;
     }
 
