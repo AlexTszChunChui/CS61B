@@ -114,8 +114,6 @@ public class Model extends Observable {
         for (int y = board.size() - 2; y >= 0; y -= 1){
             Tile currenttile = board.tile(col, y);
             if (currenttile != null) {
-                int a = currenttile.col();
-                int b = currenttile.row();
                 int row = Target(col, y, Top, currenttile.value());
                 if (row != y) {
                     changed = true;
