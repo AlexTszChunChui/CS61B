@@ -93,7 +93,39 @@ public class Model extends Observable {
         checkGameOver();
         setChanged();
     }
-
+    /** Search for row than can move to
+     * */
+    public int Targetrow(int col, int row, int Top, int value){
+        for (int y = row + 1; y <= Top; y += 1){
+            if (board.tile(col, y) != null){
+                if (board.tile(col, y).value() == value){
+                    return y;
+                }
+                return y - 1;
+            }
+        }
+        return Top;
+    }
+    /** Moving everything elements from top to bottom on called column
+     * */
+    public boolean MoveTop(int col) {
+        boolean changed = false;
+        int Top = board.size() - 1;
+        for (int y = board.size() - 2; y >= 0; y -= 1){
+            Tile currenttile = board.tile(col, y);
+            if (currenttile != null) {
+                int row = Targetrow(col, y, Top, currenttile.value());
+                if (row != y) {
+                    changed = true;
+                    if (board.move(col, row, currenttile)) {
+                        score += currenttile.value() * 2;
+                        Top -= 1;
+                    }
+                }
+            }
+        }
+        return changed;
+    }
     /** Tilt the board toward SIDE. Return true iff this changes the board.
      *
      * 1. If two Tile objects are adjacent in the direction of motion and have
@@ -113,7 +145,13 @@ public class Model extends Observable {
         // TODO: Modify this.board (and perhaps this.score) to account
         // for the tilt to the Side SIDE. If the board changed, set the
         // changed local variable to true.
-
+        board.setViewingPerspective(side);
+        for (int x = 0; x < board.size(); x += 1){
+            if(MoveTop(x)){
+                changed = true;
+            }
+        }
+        board.setViewingPerspective(Side.NORTH);
         checkGameOver();
         if (changed) {
             setChanged();
