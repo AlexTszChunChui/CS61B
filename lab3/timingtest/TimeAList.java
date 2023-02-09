@@ -36,7 +36,7 @@ public class TimeAList {
         AList<Integer> Ns = new AList<>();
         AList<Double> Times = new AList<>();
         AList<Integer> counts = new AList<>();
-        int[] n = {1000, 2000, 4000, 8000, 16000, 32000, 64000, 128000, 10000000};
+        int[] n = {1000, 2000, 4000, 8000, 16000, 32000, 64000, 128000};
         for (int x : n) {
             Stopwatch sw = new Stopwatch();
             int time = counting(x);
