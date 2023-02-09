@@ -20,9 +20,32 @@ public class TimeSLList {
     public static void main(String[] args) {
         timeGetLast();
     }
-
-    public static void timeGetLast() {
-        // TODO: YOUR CODE HERE
+    public static SLList countingGetLast(int n){
+        int time = 0;
+        SLList<Integer> test = new SLList<>();
+        while (time < n) {
+            test.addLast(time);
+            time += 1;
+        }
+        return test;
     }
-
+    public static void timeGetLast() {
+        AList<Integer> Ns = new AList<>();
+        AList<Double> Times = new AList<>();
+        AList<Integer> counts = new AList<>();
+        int[] n = {1000, 2000, 4000, 8000, 16000, 32000, 64000, 128000};
+        int M = 10000;
+        for (int x : n) {
+            SLList<Integer> test = countingGetLast(x);
+            Stopwatch sw = new Stopwatch();
+            for (int z = 0; z < M; z += 1) {
+                test.getLast();
+            }
+            double timeInSeconds = sw.elapsedTime();
+            Ns.addLast(x);
+            counts.addLast(M);
+            Times.addLast(timeInSeconds);
+        }
+        printTimingTable(Ns, Times, counts);
+    }
 }
