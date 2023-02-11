@@ -26,22 +26,28 @@ public class ArrayDeque<Item> {
     public void addFirst(Item T) {
         if (size == items.length) {
             resize(size * 2);
-        } else if (nextFirst == 0) {
-            nextFirst = items.length - 1;
         }
         items[nextFirst] = T;
-        nextFirst -= 1;
+        if (nextFirst == 0) {
+            nextFirst = items.length - 1;
+        }
+        else {
+            nextFirst -= 1;
+        }
         size += 1;
     }
 
     public void addLast(Item T) {
         if (size == items.length) {
             resize(size * 2);
-        } else if (nextLast == items.length - 1) {
-            nextLast = 0;
         }
         items[nextLast] = T;
-        nextLast += 1;
+        if (nextLast == items.length - 1) {
+            nextLast = 0;
+        }
+        else {
+            nextLast += 1;
+        }
         size += 1;
     }
     public Item removeFirst() {
