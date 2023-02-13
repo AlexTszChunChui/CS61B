@@ -18,8 +18,8 @@ public class ArrayDeque<Item> {
         for (int i = 0; i < items.length; i += 1) {
             a[i] = this.get(i);
         }
-        nextLast = items.length;
         items = a;
+        nextLast = size;
         nextFirst = items.length - 1;
     }
 
@@ -28,12 +28,7 @@ public class ArrayDeque<Item> {
             resize(size * 2);
         }
         items[nextFirst] = T;
-        if (nextFirst == 0) {
-            nextFirst = items.length - 1;
-        }
-        else {
-            nextFirst -= 1;
-        }
+        nextFirst = (nextFirst - 1 + items.length) % items.length;
         size += 1;
     }
 
@@ -42,24 +37,14 @@ public class ArrayDeque<Item> {
             resize(size * 2);
         }
         items[nextLast] = T;
-        if (nextLast == items.length - 1) {
-            nextLast = 0;
-        }
-        else {
-            nextLast += 1;
-        }
+        nextLast = (nextLast + 1) % items.length;
         size += 1;
     }
     public Item removeFirst() {
         if (isEmpty()) {
             return null;
         }
-        else if (nextFirst == items.length - 1) {
-            nextFirst = 0;
-        }
-        else {
-            nextFirst += 1;
-        }
+        nextFirst = (nextFirst + 1) % items.length;
         size -= 1;
         Item temp = items[nextFirst];
         items[nextFirst] = null;
@@ -73,12 +58,7 @@ public class ArrayDeque<Item> {
         if (isEmpty()) {
             return null;
         }
-        else if (nextLast == 0) {
-            nextLast = items.length - 1;
-        }
-        else {
-            nextLast -= 1;
-        }
+        nextLast = (nextLast - 1 + items.length) % items.length;
         size -= 1;
         Item temp = items[nextLast];
         items[nextLast] = null;
