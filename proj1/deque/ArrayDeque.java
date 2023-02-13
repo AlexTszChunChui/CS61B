@@ -15,7 +15,7 @@ public class ArrayDeque<Item> {
 
     public void resize(int capacity) {
         Item[] a = (Item[]) new Object[capacity];
-        for (int i = 0; i < items.length; i += 1) {
+        for (int i = 0; i < size; i += 1) {
             a[i] = this.get(i);
         }
         items = a;
