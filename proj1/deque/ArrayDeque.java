@@ -72,12 +72,7 @@ public class ArrayDeque<Item> {
         String everything = "";
         while (now != nextLast) {
             everything = everything + items[now].toString() + " ";
-            if (now == items.length - 1) {
-                now = 0;
-            }
-            else{
-                now += 1;
-            }
+            now = (now + 1) % items.length;
         }
         return everything;
     }
