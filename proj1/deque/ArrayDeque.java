@@ -1,6 +1,9 @@
 package deque;
 
-public class ArrayDeque<Item> {
+import java.util.Comparator;
+import java.util.Iterator;
+
+public class ArrayDeque<Item> implements Iterable<Item>, Deque<Item> {
     private Item[] items;
     private int size;
     private int nextFirst;
@@ -13,7 +16,7 @@ public class ArrayDeque<Item> {
         nextLast = 5;
     }
 
-    public void resize(int capacity) {
+    private void resize(int capacity) {
         Item[] a = (Item[]) new Object[capacity];
         for (int i = 0; i < size; i += 1) {
             a[i] = this.get(i);
@@ -22,8 +25,11 @@ public class ArrayDeque<Item> {
         nextLast = size;
         nextFirst = items.length - 1;
     }
-
+    @Override
     public void addFirst(Item T) {
+        if (T == null) {
+            throw new IllegalArgumentException("Not allowed to add null");
+        }
         if (size == items.length) {
             resize(size * 2);
         }
@@ -31,8 +37,11 @@ public class ArrayDeque<Item> {
         nextFirst = (nextFirst - 1 + items.length) % items.length;
         size += 1;
     }
-
+    @Override
     public void addLast(Item T) {
+        if (T == null) {
+            throw new IllegalArgumentException("Not allowed to add null");
+        }
         if (size == items.length) {
             resize(size * 2);
         }
@@ -40,6 +49,7 @@ public class ArrayDeque<Item> {
         nextLast = (nextLast + 1) % items.length;
         size += 1;
     }
+    @Override
     public Item removeFirst() {
         if (isEmpty()) {
             return null;
@@ -53,7 +63,7 @@ public class ArrayDeque<Item> {
         }
         return temp;
     }
-
+    @Override
     public Item removeLast() {
         if (isEmpty()) {
             return null;
@@ -67,6 +77,7 @@ public class ArrayDeque<Item> {
         }
         return temp;
     }
+
     private String alliteminstring() {
         int now = nextFirst + 1;
         String everything = "";
@@ -76,18 +87,62 @@ public class ArrayDeque<Item> {
         }
         return everything;
     }
+    @Override
     public void printDeque() {
         System.out.print(alliteminstring());
         System.out.println();
     }
-    public boolean isEmpty() {
-        return size == 0;
-    }
-    public Item get(int i){
+    @Override
+    public Item get(int i) {
         int index = (nextFirst + 1 + i) % items.length;
         return items[index];
     }
+    @Override
     public int size() {
         return size;
     }
+
+    public Iterator<Item> iterator() {
+        return new ArrayDequeIterator();
+    }
+
+    private class ArrayDequeIterator implements Iterator<Item> {
+        private int position;
+
+        public ArrayDequeIterator() {
+            position = 0;
+        }
+
+        public boolean hasNext() {
+            return position < size;
+        }
+
+        public Item next() {
+            Item ritem = get(position);
+            position += 1;
+            return ritem;
+        }
+    }
+
+    @Override
+    public boolean equals(Object other) {
+        if (other == null) {
+            return false;
+        }
+        if (! (other instanceof Deque)) {
+            return false;
+        }
+        Deque o = ((Deque) other);
+        if (o.size() != this.size()) {
+            return false;
+        }
+        for (int i = 0; i < size; i += 1) {
+            if(! this.get(i).equals(o.get(i))) {
+                return false;
+            }
+        }
+        return true;
+    }
 }
+
+
