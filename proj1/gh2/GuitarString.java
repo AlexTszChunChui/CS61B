@@ -43,6 +43,11 @@ public class GuitarString {
         //       other. This does not mean that you need to check that the numbers
         //       are different from each other. It means you should repeatedly call
         //       Math.random() - 0.5 to generate new random numbers for each array index.
+        for (int x = 0; x < buffer.size(); x += 1) {
+            buffer.removeLast();
+            double noise = Math.random() - 0.5;
+            buffer.addFirst(noise);
+        }
     }
 
     /* Advance the simulation one time step by performing one iteration of
@@ -52,12 +57,16 @@ public class GuitarString {
         // TODO: Dequeue the front sample and enqueue a new sample that is
         //       the average of the two multiplied by the DECAY factor.
         //       **Do not call StdAudio.play().**
+        double front = buffer.removeFirst();
+        double sample = buffer.get(0);
+        double newdouble = (front + sample) / 2;
+        buffer.addLast(newdouble);
     }
 
     /* Return the double at the front of the buffer. */
     public double sample() {
         // TODO: Return the correct thing.
-        return 0;
+        return buffer.get(0);
     }
 }
     // TODO: Remove all comments that say TODO when you're done.
