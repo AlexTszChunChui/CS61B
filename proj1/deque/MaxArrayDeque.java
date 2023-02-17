@@ -2,11 +2,13 @@ package deque;
 
 import java.util.Comparator;
 
-public class MaxArrayDeque<T> extends ArrayDeque<T>{
-    public Comparator<T> normalcomparator;
+public class MaxArrayDeque<T> extends ArrayDeque<T> {
+    private Comparator<T> normalcomparator;
+
     public MaxArrayDeque(Comparator<T> c) {
         this.normalcomparator = c;
     }
+
     public T max() {
         if (isEmpty()) {
             return null;
@@ -20,6 +22,7 @@ public class MaxArrayDeque<T> extends ArrayDeque<T>{
         }
         return max;
     }
+
     public T max(Comparator<T> c) {
         if (isEmpty()) {
             return null;
