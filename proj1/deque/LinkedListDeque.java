@@ -74,7 +74,7 @@ public class LinkedListDeque<T> implements Iterable<T>, Deque<T> {
         return n.T;
     }
 
-    private T findT(int index, Node lst){
+    private T findT(int index, Node lst) {
         if (index == 0) {
             return lst.T;
         } else if (lst.next == sentinel) {
