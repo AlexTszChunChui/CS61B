@@ -49,7 +49,7 @@ public class GuitarString {
 
         double front = buffer.removeFirst();
         double sample = buffer.get(0);
-        double newdouble = (front + sample) / 2;
+        double newdouble = (front + sample) / 2 * DECAY;
         buffer.addLast(newdouble);
     }
 
