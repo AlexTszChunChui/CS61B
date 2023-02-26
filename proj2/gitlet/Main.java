@@ -10,15 +10,33 @@ public class Main {
      */
     public static void main(String[] args) {
         // TODO: what if args is empty?
-        String firstArg = args[0];
-        switch(firstArg) {
-            case "init":
-                // TODO: handle the `init` command
-                break;
-            case "add":
-                // TODO: handle the `add [filename]` command
-                break;
-            // TODO: FILL THE REST IN
+        if (args.length == 0) {
+            System.out.println("Invalid number of arguments");
+        }
+        else {
+            String firstArg = args[0];
+            switch(firstArg) {
+                case "init":
+                    Repository.initgitlet();
+                    break;
+                case "add":
+                    Repository.add(args[1]);
+                    break;
+                // TODO: FILL THE REST IN
+                case "commit":
+                    if (args.length < 2) {
+                        System.out.println("Please enter a commit message.");
+                        break;
+                    }
+                    Repository.commit(args[1]);
+                    break;
+                case "rm":
+                    Repository.remove(args[1]);
+                    break;
+                case "log":
+                    Repository.printlog();
+                    break;
+            }
         }
     }
 }
