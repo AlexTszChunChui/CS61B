@@ -22,7 +22,6 @@ public class Main {
                 case "add":
                     Repository.add(args[1]);
                     break;
-                // TODO: FILL THE REST IN
                 case "commit":
                     if (args.length < 2) {
                         System.out.println("Please enter a commit message.");
@@ -36,6 +35,17 @@ public class Main {
                 case "log":
                     Repository.printlog();
                     break;
+                case "checkout":
+                    if (args.length == 3 && args[1].equals("--")) {
+                        Repository.checkoutheadcommit(args[2]);
+                        break;
+                    } else if (args.length == 4 && args[2].equals("--")) {
+                        Repository.checkoutpastcommit(args[1], args[3]);
+                        break;
+                    } else {
+                        System.out.println("Invalid command");
+                        break;
+                    }
             }
         }
     }

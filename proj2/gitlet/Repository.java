@@ -47,13 +47,13 @@ public class Repository  {
             return;
         }
         GITLET_DIR.mkdir();
+        COMMIT_DIR.mkdir();
         blops.mkdir();
         createfile(Head);
         createfile(master);
         createfile(StagingArea);
-        createfile(COMMIT_DIR);
-        writeObject(COMMIT_DIR, new HashMap<String, Commit>());
         writeObject(StagingArea, new HashMap<String, String>());
+
         /** create the initial commit. */
         Commit initialcommit =
                 new Commit("initial commit", null, new Date(0), new HashMap<String, String>());
@@ -61,7 +61,6 @@ public class Repository  {
         writeContents(Head, UID);
         writeContents(master, UID);
     }
-
 
     public static void add(String name) {
         /** check if the file need to be added exists */
@@ -136,16 +135,42 @@ public class Repository  {
             System.out.println("No reason to remove the file");
         }
     }
+    /** date must be in Wed Dec 31 16:00:00 1969 -0800 format */
     public static void printlog() {
         Commit head = headcommit();
         while (head != null) {
             System.out.println("===");
             System.out.println("commit " + head.getUID());
-            System.out.println("Date " + head.getTimestamp());
+            System.out.println("Date: " + head.getTimestamp());
             System.out.println(head.getMessage());
             System.out.println("");
             head = head.getParent();
         }
+    }
+
+    public static void checkoutheadcommit(String name) {
+        checkout(headcommit(), name);
+    }
+
+    public static void checkoutpastcommit(String UID, String name) {
+        Commit pastcommit = Commit.getCommit(UID);
+        checkout(pastcommit, name);
+    }
+
+    private static void checkout(Commit location, String name) {
+        /** Finding the relative File of the commit */
+        Map tracker = location.gettracker();
+        String FileUID = (String) tracker.get(name);
+        if (FileUID == null) {
+            System.out.println("File does not exist in that commit.");
+            return;
+        }
+
+        /** checkout the file user required */
+        File blop = Utils.join(blops, FileUID);
+        File oldversion = Utils.join(CWD, name);
+        byte[] contents = readContents(blop);
+        writeContents(oldversion, contents);
     }
 
     /** shortcut for creating file */
@@ -159,9 +184,8 @@ public class Repository  {
     }
 
     private static Commit headcommit() {
-        HashMap<String, Commit> Commitsmap = readObject(COMMIT_DIR, HashMap.class);
         String HeadUID = readContentsAsString(Head);
-        return Commitsmap.get(HeadUID);
+        return Commit.getCommit(HeadUID);
     }
 
     private static HashMap<String, String> stagingarea() {

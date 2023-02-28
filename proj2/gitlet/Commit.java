@@ -4,6 +4,7 @@ package gitlet;
 
 import java.io.File;
 import java.io.Serializable;
+import java.text.SimpleDateFormat;
 import java.util.*;
 
 import static gitlet.Utils.*;
@@ -46,16 +47,29 @@ public class Commit implements Serializable {
     }
 
     public String getTimestamp() {
-        return timestamp.toString();
+        SimpleDateFormat dateForm = new SimpleDateFormat("E MMM d HH:mm:ss YYYY Z", Locale.US);
+        return dateForm.format(this.timestamp);
     }
 
     public Commit getParent() {
-        HashMap<String, Commit> Commitsmap = readObject(COMMIT_DIR, HashMap.class);
-        String UID = this.parent.get(0);
+        return getCommit(this.parent.get(0));
+    }
+
+    public static Commit getCommit(String UID) {
         if (UID == null) {
             return null;
-        } else {
-            return Commitsmap.get(UID);
+        }
+        else {
+            File twodigits = Utils.join(COMMIT_DIR, UID.substring(0, 2));
+            List<String> lst = Utils.plainFilenamesIn(twodigits);
+            for (String name : lst) {
+                String fewerchar = name.substring(0, UID.length() - 2);
+                if (fewerchar.equals(UID.substring(2))) {
+                    File commit = Utils.join(twodigits, name);
+                    return readObject(commit, Commit.class);
+                }
+            }
+            return null;
         }
     }
 
@@ -70,8 +84,9 @@ public class Commit implements Serializable {
     /** reading from the commit file, store itself init */
     public void storecommit() {
         String UID = this.getUID();
-        HashMap<String, Commit> Commitsmap = readObject(COMMIT_DIR, HashMap.class);
-        Commitsmap.put(UID, this);
-        writeObject(COMMIT_DIR, Commitsmap);
+        File twodigits = Utils.join(COMMIT_DIR, UID.substring(0, 2));
+        twodigits.mkdir();
+        File rest = Utils.join(twodigits, UID.substring(2));
+        writeObject(rest, this);
     }
 }
