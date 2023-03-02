@@ -153,6 +153,10 @@ public class Repository  {
     }
 
     public static void checkoutpastcommit(String UID, String name) {
+        if (UID.length() < 6 && UID.length() > 40) {
+            System.out.println("Incorrect operands");
+            return;
+        }
         Commit pastcommit = Commit.getCommit(UID);
         checkout(pastcommit, name);
     }

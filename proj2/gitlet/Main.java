@@ -43,7 +43,7 @@ public class Main {
                         Repository.checkoutpastcommit(args[1], args[3]);
                         break;
                     } else {
-                        System.out.println("Invalid command");
+                        System.out.println("Incorrect operands");
                         break;
                     }
             }
