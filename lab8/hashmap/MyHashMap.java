@@ -99,7 +99,7 @@ public class MyHashMap<K, V> implements Map61B<K, V> {
         buckets[index].add(createNode(key, value));
         this.KeyStorage.add(key);
         this.Size += 1;
-        if (Size / buckets.length > loadFactor) {
+        if (Size / initialSize > loadFactor) {
             resize();
         }
     }
@@ -163,13 +163,18 @@ public class MyHashMap<K, V> implements Map61B<K, V> {
             return null;
         }
         int index = Math.floorMod(key.hashCode(), initialSize);
+        Node copy = null;
         for (Node e : buckets[index]) {
             if (e.key.equals(key) && e.value.equals(value)) {
-                buckets[index].remove(e);
-                KeyStorage.remove(key);
-                Size -= 1;
-                return e.value;
+                copy = e;
+                break;
             }
+        }
+        if (copy != null) {
+            buckets[index].remove(copy);
+            KeyStorage.remove(key);
+            Size -= 1;
+            return copy.value;
         }
         return null;
     }
