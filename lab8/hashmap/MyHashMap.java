@@ -142,7 +142,7 @@ public class MyHashMap<K, V> implements Map61B<K, V> {
         throw new UnsupportedOperationException();
     }
 
-    public V remove(K key) {
+    /**public V remove(K key) {
         if (!containsKey(key)) {
             return null;
         }
@@ -161,9 +161,9 @@ public class MyHashMap<K, V> implements Map61B<K, V> {
             return copy.value;
         }
         return null;
-    }
+    }*/
 
-    public V remove(K key, V value) {
+    /**public V remove(K key, V value) {
         if (!containsKey(key)) {
             return null;
         }
@@ -182,7 +182,7 @@ public class MyHashMap<K, V> implements Map61B<K, V> {
             return copy.value;
         }
         return null;
-    }
+    }*/
 
     /**
      * Returns a table to back our hash table. As per the comment
@@ -213,6 +213,14 @@ public class MyHashMap<K, V> implements Map61B<K, V> {
         public K next() {
             return iter.next();
         }
+    }
+
+    public V remove (K key) {
+        throw new UnsupportedOperationException();
+    }
+
+    public V remove (K key, V value) {
+        throw new UnsupportedOperationException();
     }
 
 }
