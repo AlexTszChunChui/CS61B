@@ -1,5 +1,7 @@
 package hashmap;
 
+import org.checkerframework.checker.units.qual.C;
+
 import java.util.*;
 
 /**
@@ -89,9 +91,11 @@ public class MyHashMap<K, V> implements Map61B<K, V> {
                     return;
                 }
             }
-        } else if (buckets[index] == null) {
+        }
+        else if (buckets[index] == null) {
             buckets[index] = createBucket();
         }
+
         buckets[index].add(createNode(key, value));
         this.KeyStorage.add(key);
         this.Size += 1;
@@ -100,12 +104,12 @@ public class MyHashMap<K, V> implements Map61B<K, V> {
         }
     }
 
-    public void resize() {
+    private void resize() {
         Collection<Node>[] copy = buckets;
         initialSize = initialSize * 2;
         buckets = new Collection[initialSize];
         insertBucket(initialSize);
-        for (Collection<Node> c : buckets) {
+        for (Collection<Node> c : copy) {
             if (!(c == null) ) {
                 for (Node e : c) {
                     this.put(e.key, e.value);
@@ -138,11 +142,35 @@ public class MyHashMap<K, V> implements Map61B<K, V> {
     }
 
     public V remove(K key) {
-        throw new UnsupportedOperationException();
+        if (!containsKey(key)) {
+            return null;
+        }
+        int index = Math.floorMod(key.hashCode(), initialSize);
+        for (Node e : buckets[index]) {
+            if (e.key.equals(key)) {
+                buckets[index].remove(e);
+                KeyStorage.remove(key);
+                Size -= 1;
+                return e.value;
+            }
+        }
+        return null;
     }
 
     public V remove(K key, V value) {
-        throw new UnsupportedOperationException();
+        if (!containsKey(key)) {
+            return null;
+        }
+        int index = Math.floorMod(key.hashCode(), initialSize);
+        for (Node e : buckets[index]) {
+            if (e.key.equals(key) && e.value.equals(value)) {
+                buckets[index].remove(e);
+                KeyStorage.remove(key);
+                Size -= 1;
+                return e.value;
+            }
+        }
+        return null;
     }
 
     /**
