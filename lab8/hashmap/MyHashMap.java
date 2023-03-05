@@ -106,6 +106,7 @@ public class MyHashMap<K, V> implements Map61B<K, V> {
 
     private void resize() {
         Collection<Node>[] copy = buckets;
+        clear();
         initialSize = initialSize * 2;
         buckets = new Collection[initialSize];
         insertBucket(initialSize);
