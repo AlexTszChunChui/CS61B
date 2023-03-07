@@ -35,6 +35,9 @@ public class Main {
                 case "log":
                     Repository.printlog();
                     break;
+                case "global-log":
+                    Repository.printgloballog();
+                    break;
                 case "checkout":
                     if (args.length == 3 && args[1].equals("--")) {
                         Repository.checkoutheadcommit(args[2]);
@@ -42,10 +45,16 @@ public class Main {
                     } else if (args.length == 4 && args[2].equals("--")) {
                         Repository.checkoutpastcommit(args[1], args[3]);
                         break;
+                    } else if (args.length == 2) {
+                        Repository.checkoutbranch(args[1]);
+                        break;
                     } else {
                         System.out.println("Incorrect operands");
                         break;
                     }
+                case "branch":
+                    Repository.branch(args[1]);
+                    break;
             }
         }
     }

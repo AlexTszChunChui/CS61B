@@ -1,10 +1,10 @@
 package gitlet;
 
+import jdk.jshell.execution.Util;
+
 import java.io.File;
 import java.io.IOException;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 import static gitlet.Utils.*;
 
@@ -17,13 +17,6 @@ import static gitlet.Utils.*;
  *  @author TODO
  */
 public class Repository  {
-    /**
-     * TODO: add instance variables here.
-     *
-     * List all instance variables of the Repository class here with a useful
-     * comment above them describing what that variable represents and how that
-     * variable is used. We've provided two examples for you.
-     */
 
     /** The current working directory. */
     public static final File CWD = new File(System.getProperty("user.dir"));
@@ -31,14 +24,14 @@ public class Repository  {
     public static final File GITLET_DIR = join(CWD, ".gitlet");
     /** The commit directory stored a Hashmap of UID and Commit. */
     public static final File COMMIT_DIR = join(GITLET_DIR, "Commits");
+    /** A file stored UID of a master Branch Object */
+    public static File Branch = join(GITLET_DIR, "Branch");
     /** A file stored UID of Head Commit Object */
-    public static File Head = join(GITLET_DIR, "Head");
-    /** A file stored UID of a master Commit Object */
-    public static File master = join(GITLET_DIR, "master");
+    public static File Head = join(GITLET_DIR, "head");
     /** A folder stored all the snapshot of file */
     public static File blops = join(GITLET_DIR, "blops");
     /** A hashmap that keep track on staged file */
-    public static File StagingArea = join(GITLET_DIR, "StagingArea");
+    public static File StagingArea = join(blops, "StagingArea");
 
     public static void initgitlet() {
         /** create all the folder and file. */
@@ -48,9 +41,10 @@ public class Repository  {
         }
         GITLET_DIR.mkdir();
         COMMIT_DIR.mkdir();
+        Branch.mkdir();
         blops.mkdir();
         createfile(Head);
-        createfile(master);
+        createfile(join(Branch, "master"));
         createfile(StagingArea);
         writeObject(StagingArea, new HashMap<String, String>());
 
@@ -58,8 +52,8 @@ public class Repository  {
         Commit initialcommit =
                 new Commit("initial commit", null, new Date(0), new HashMap<String, String>());
         String UID = initialcommit.getUID();
-        writeContents(Head, UID);
-        writeContents(master, UID);
+        writeContents(Head, "master");
+        writeContents(Headfile(), UID);
     }
 
     public static void add(String name) {
@@ -111,8 +105,7 @@ public class Repository  {
 
         /** updating all the information */
         String UID = commit.getUID();
-        writeContents(Head, UID);
-        writeContents(master, UID);
+        writeContents(Headfile(), UID);
         writeObject(StagingArea, new HashMap<String, String>());
     }
 
@@ -135,6 +128,7 @@ public class Repository  {
             System.out.println("No reason to remove the file");
         }
     }
+
     /** date must be in Wed Dec 31 16:00:00 1969 -0800 format */
     public static void printlog() {
         Commit head = headcommit();
@@ -148,8 +142,14 @@ public class Repository  {
         }
     }
 
+    public static void printgloballog() {
+        List<String> lst = plainFilenamesIn(COMMIT_DIR);
+    }
+
     public static void checkoutheadcommit(String name) {
-        checkout(headcommit(), name);
+        HashSet<String> lst = new HashSet<>();
+        lst.add(name);
+        checkout(headcommit(), lst);
     }
 
     public static void checkoutpastcommit(String UID, String name) {
@@ -158,27 +158,62 @@ public class Repository  {
             return;
         }
         Commit pastcommit = Commit.getCommit(UID);
-        checkout(pastcommit, name);
+        HashSet<String> lst = new HashSet<>();
+        lst.add(name);
+        checkout(pastcommit, lst);
     }
 
-    private static void checkout(Commit location, String name) {
+    public static void checkoutbranch(String name) {
+        File newbranch = Utils.join(Branch, name);
+        if (!newbranch.exists()) {
+            System.out.println("No such branch exists");
+        } else if (iscurrentbranch(newbranch)) {
+            System.out.println("No need to checkout the current branch.");
+        } else if (untrackedfile(newbranch)) {
+            System.out.println("There is an untracked file in the way; delete it, or add and commit it first.");
+        } else {
+            clearup(newbranch);
+            writeContents(Head, name);
+            Commit c = headcommit();
+            checkout(c, c.gettracker().keySet());
+        }
+    }
+
+    private static void checkout(Commit location, Set<String> set) {
         /** Finding the relative File of the commit */
         Map tracker = location.gettracker();
-        String FileUID = (String) tracker.get(name);
-        if (FileUID == null) {
-            System.out.println("File does not exist in that commit.");
+        for (String name : set) {
+            String FileUID = (String) tracker.get(name);
+            if (FileUID == null) {
+                System.out.println("File does not exist in that commit.");
+                return;
+            }
+
+            /** checkout the file user required */
+            File blop = Utils.join(blops, FileUID);
+            File oldversion = Utils.join(CWD, name);
+            byte[] contents = readContents(blop);
+            if (!oldversion.exists()) {
+                createfile(oldversion);
+            }
+            writeContents(oldversion, contents);
+        }
+    }
+
+    /** create branch file store respective Head Commit UID */
+    public static void branch(String name){
+        File newbranch = Utils.join(Branch, name);
+        if (newbranch.exists()) {
+            System.out.println("A branch with that name already exists");
             return;
         }
-
-        /** checkout the file user required */
-        File blop = Utils.join(blops, FileUID);
-        File oldversion = Utils.join(CWD, name);
-        byte[] contents = readContents(blop);
-        writeContents(oldversion, contents);
+        createfile(newbranch);
+        String CurrentHead = readContentsAsString(Headfile());
+        writeContents(newbranch, CurrentHead);
     }
 
     /** shortcut for creating file */
-    public static void createfile(File file) {
+    protected static void createfile(File file) {
         try {
             file.createNewFile();
         }
@@ -187,13 +222,61 @@ public class Repository  {
         }
     }
 
+    /** return the Commit Object that Head pointer pointing at */
     private static Commit headcommit() {
-        String HeadUID = readContentsAsString(Head);
+        String HeadUID = readContentsAsString(Headfile());
         return Commit.getCommit(HeadUID);
     }
 
+    /** return the HashMap that stored the information of stagingarea */
     private static HashMap<String, String> stagingarea() {
         return readObject(StagingArea, HashMap.class);
     }
 
+    /** helper function that check if the checkout branch is the currentbranch */
+    private static boolean iscurrentbranch(File file) {
+        try {
+            if (file.getCanonicalPath().equals(Headfile().getCanonicalPath())) {
+                return true;
+            }
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+        return false;
+    }
+
+    private static boolean untrackedfile(File newbranch) {
+        String HeadUID = readContentsAsString(newbranch);
+        Commit branchhead = Commit.getCommit(HeadUID);
+        Set<String> tracked = branchhead.gettracker().keySet();
+        for (String name: tracked) {
+            File file = new File (CWD, name);
+            /** check if a file exists in CWD but neither staged for addition nor tracked */
+            if (file.exists() && !stagingarea().containsKey(name) && !headcommit().gettracker().containsKey(name)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /** helper function for delete file that are tracked in the current branch
+     *  but are not present in the checked-out branch
+     */
+    private static void clearup(File newbranch) {
+        String HeadUID = readContentsAsString(newbranch);
+        Commit branchhead = Commit.getCommit(HeadUID);
+        Set<String> tracked = branchhead.gettracker().keySet();
+        Set<String> currenttracked = headcommit().gettracker().keySet();
+        for (String name : currenttracked) {
+            if (!tracked.contains(name)) {
+                File rm = Utils.join(CWD, name);
+                restrictedDelete(rm);
+            }
+        }
+    }
+
+    /** return the headfile object in relative branch of current Head pointer point at */
+    private static File Headfile() {
+        return join(Branch, readContentsAsString(Head));
+    }
 }
