@@ -26,7 +26,7 @@ public class Repository  {
     public static final File COMMIT_DIR = join(GITLET_DIR, "Commits");
     /** A file stored UID of a master Branch Object */
     public static File Branch = join(GITLET_DIR, "Branch");
-    /** A file stored UID of Head Commit Object */
+    /** A file stored current Branch name */
     public static File Head = join(GITLET_DIR, "head");
     /** A folder stored all the snapshot of file */
     public static File blops = join(GITLET_DIR, "blops");
@@ -189,6 +189,9 @@ public class Repository  {
 
     private static void printstaged() {
         Map staged = stagingarea();
+        if (staged.isEmpty()) {
+            return;
+        }
         SortedSet<String> filename = new TreeSet<>(staged.keySet());
         for (String name : filename) {
             if (staged.get(name) != null) {
@@ -234,6 +237,10 @@ public class Repository  {
             return;
         }
         Commit pastcommit = Commit.getCommit(UID);
+        if (pastcommit == null) {
+            System.out.println("No commit with that id exists");
+            return;
+        }
         HashSet<String> lst = new HashSet<>();
         lst.add(name);
         checkout(pastcommit, lst);
@@ -245,10 +252,11 @@ public class Repository  {
             System.out.println("No such branch exists");
         } else if (iscurrentbranch(newbranch)) {
             System.out.println("No need to checkout the current branch.");
-        } else if (untrackedfile(newbranch)) {
+        /** passing the relative commit into untrackedfile helper function */
+        } else if (untrackedfile(Commit.getCommit(readContentsAsString(newbranch)))) {
             System.out.println("There is an untracked file in the way; delete it, or add and commit it first.");
         } else {
-            clearup(newbranch);
+            clearup(Commit.getCommit(readContentsAsString(newbranch)));
             writeContents(Head, name);
             Commit c = headcommit();
             checkout(c, c.gettracker().keySet());
@@ -274,6 +282,8 @@ public class Repository  {
             }
             writeContents(oldversion, contents);
         }
+        /** clearup the stagingarea */
+        writeObject(StagingArea, new HashMap<String, String>());
     }
 
     /** create branch file store respective Head Commit UID */
@@ -298,6 +308,21 @@ public class Repository  {
         } else {
             rm.delete();
         }
+    }
+
+    /** checkout the specific commit */
+    public static void reset(String commitid) {
+        Commit pastcommit = Commit.getCommit(commitid);
+        if (pastcommit == null) {
+            System.out.println("No commit with that id exists");
+            return;
+        } else if (untrackedfile(pastcommit)) {
+            System.out.println("There is an untracked file in the way; delete it, or add and commit it first.");
+            return;
+        }
+        clearup(pastcommit);
+        writeContents(Headfile(), commitid);
+        checkout(pastcommit, pastcommit.gettracker().keySet());
     }
 
     /** shortcut for creating file */
@@ -333,9 +358,7 @@ public class Repository  {
         return false;
     }
 
-    private static boolean untrackedfile(File newbranch) {
-        String HeadUID = readContentsAsString(newbranch);
-        Commit branchhead = Commit.getCommit(HeadUID);
+    private static boolean untrackedfile(Commit branchhead) {
         Set<String> tracked = branchhead.gettracker().keySet();
         for (String name: tracked) {
             File file = new File (CWD, name);
@@ -350,9 +373,7 @@ public class Repository  {
     /** helper function for delete file that are tracked in the current branch
      *  but are not present in the checked-out branch
      */
-    private static void clearup(File newbranch) {
-        String HeadUID = readContentsAsString(newbranch);
-        Commit branchhead = Commit.getCommit(HeadUID);
+    private static void clearup(Commit branchhead) {
         Set<String> tracked = branchhead.gettracker().keySet();
         Set<String> currenttracked = headcommit().gettracker().keySet();
         for (String name : currenttracked) {

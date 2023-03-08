@@ -61,6 +61,7 @@ public class Main {
                         break;
                     }
                     Repository.find(args[1]);
+                    break;
                 case "rm-branch":
                     if (args.length != 2) {
                         System.out.println("Incorrect operands");
@@ -70,6 +71,9 @@ public class Main {
                     break;
                 case "status":
                     Repository.status();
+                    break;
+                case "reset":
+                    Repository.reset(args[1]);
                     break;
             }
         }

@@ -63,6 +63,9 @@ public class Commit implements Serializable {
         else {
             File twodigits = Utils.join(COMMIT_DIR, UID.substring(0, 2));
             List<String> lst = Utils.plainFilenamesIn(twodigits);
+            if (lst == null) {
+                return null;
+            }
             for (String name : lst) {
                 String fewerchar = name.substring(0, UID.length() - 2);
                 if (fewerchar.equals(UID.substring(2))) {
