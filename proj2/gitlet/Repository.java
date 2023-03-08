@@ -32,6 +32,8 @@ public class Repository  {
     public static File blops = join(GITLET_DIR, "blops");
     /** A hashmap that keep track on staged file */
     public static File StagingArea = join(blops, "StagingArea");
+    /** A hashset stored all Commit Object UID */
+    public static File CommitSet = join(COMMIT_DIR, "CommitSet");
 
     public static void initgitlet() {
         /** create all the folder and file. */
@@ -47,6 +49,7 @@ public class Repository  {
         createfile(join(Branch, "master"));
         createfile(StagingArea);
         writeObject(StagingArea, new HashMap<String, String>());
+        writeObject(CommitSet, new HashSet<>());
 
         /** create the initial commit. */
         Commit initialcommit =
@@ -65,14 +68,16 @@ public class Repository  {
         }
         /** adding added file to blops and StagingMap */
         HashMap StagingMap = stagingarea();
+        HashMap tracked = headcommit().gettracker();
         byte[] contents = readContents(staging);
         String UID = Utils.sha1(contents);
         File staged = new File (blops, UID);
 
-        if (staged.exists()) {
+        if (staged.exists() && tracked.containsKey(name)) {
+            StagingMap.remove(name);
+        } else if (staged.exists()) {
             StagingMap.put(name, UID);
-        }
-        else {
+        } else {
             createfile(staged);
             writeContents(staged, contents);
             StagingMap.put(name, UID);
@@ -117,7 +122,7 @@ public class Repository  {
         if (StagingMap.containsKey(name)) {
             String UID = StagingMap.get(name);
             File staged = new File(blops, UID);
-            Utils.restrictedDelete(staged);
+            staged.delete();
             StagingMap.remove(name);
             writeObject(StagingArea, StagingMap);
         } else if (tracked.containsKey(name)) {
@@ -143,7 +148,78 @@ public class Repository  {
     }
 
     public static void printgloballog() {
-        List<String> lst = plainFilenamesIn(COMMIT_DIR);
+        HashSet<String> UIDSet = readObject(CommitSet, HashSet.class);
+        for (String UID : UIDSet) {
+            Commit c = Commit.getCommit(UID);
+            System.out.println("===");
+            System.out.println("commit " + c.getUID());
+            System.out.println("Date: " + c.getTimestamp());
+            System.out.println(c.getMessage());
+            System.out.println("");
+        }
+    }
+
+    public static void status() {
+        System.out.println("=== Branches ===");
+        printbranch();
+        System.out.println("");
+        System.out.println("=== Staged Files ===");
+        printstaged();
+        System.out.println("");
+        System.out.println("=== Removed Files ===");
+        printremoved();
+        System.out.println("");
+        System.out.println("=== Modifications Not Staged For Commit ===");
+        System.out.println("");
+        System.out.println("=== Untracked Files ===");
+        System.out.println("");
+    }
+
+    private static void printbranch() {
+        List<String> lst = plainFilenamesIn(Branch);
+        Collections.sort(lst);
+        for (String name : lst) {
+            if (iscurrentbranch(join(Branch, name))) {
+                System.out.println("*" + name);
+            } else {
+                System.out.println(name);
+            }
+        }
+    }
+
+    private static void printstaged() {
+        Map staged = stagingarea();
+        SortedSet<String> filename = new TreeSet<>(staged.keySet());
+        for (String name : filename) {
+            if (staged.get(name) != null) {
+                System.out.println(name);
+            }
+        }
+    }
+
+    private static void printremoved() {
+        Map staged = stagingarea();
+        SortedSet<String> filename = new TreeSet<>(staged.keySet());
+        for (String name : filename) {
+            if (staged.get(name) == null) {
+                System.out.println(name);
+            }
+        }
+    }
+
+    public static void find(String message) {
+        boolean exist = false;
+        HashSet<String> UIDSet = readObject(CommitSet, HashSet.class);
+        for (String UID : UIDSet) {
+            Commit c = Commit.getCommit(UID);
+            if (c.getMessage().equals(message)) {
+                exist = true;
+                System.out.println(c.getUID());
+            }
+        }
+        if (!exist) {
+            System.out.println("Found no commit with that message.");
+        }
     }
 
     public static void checkoutheadcommit(String name) {
@@ -212,6 +288,18 @@ public class Repository  {
         writeContents(newbranch, CurrentHead);
     }
 
+    /** delete the branch with the given name */
+    public static void rmbranch(String name) {
+        File rm = join(Branch, name);
+        if (!rm.exists()) {
+            System.out.println("A branch with that name does not exist");
+        } else if (iscurrentbranch(rm)) {
+            System.out.println("Cannot remove the current branch.");
+        } else {
+            rm.delete();
+        }
+    }
+
     /** shortcut for creating file */
     protected static void createfile(File file) {
         try {
@@ -269,7 +357,7 @@ public class Repository  {
         Set<String> currenttracked = headcommit().gettracker().keySet();
         for (String name : currenttracked) {
             if (!tracked.contains(name)) {
-                File rm = Utils.join(CWD, name);
+                File rm = join(CWD, name);
                 restrictedDelete(rm);
             }
         }

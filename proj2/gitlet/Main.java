@@ -23,7 +23,7 @@ public class Main {
                     Repository.add(args[1]);
                     break;
                 case "commit":
-                    if (args.length < 2) {
+                    if (args.length < 2 || args[1].length() < 1) {
                         System.out.println("Please enter a commit message.");
                         break;
                     }
@@ -54,6 +54,22 @@ public class Main {
                     }
                 case "branch":
                     Repository.branch(args[1]);
+                    break;
+                case "find":
+                    if (args.length != 2) {
+                        System.out.println("Incorrect operands");
+                        break;
+                    }
+                    Repository.find(args[1]);
+                case "rm-branch":
+                    if (args.length != 2) {
+                        System.out.println("Incorrect operands");
+                        break;
+                    }
+                    Repository.rmbranch(args[1]);
+                    break;
+                case "status":
+                    Repository.status();
                     break;
             }
         }

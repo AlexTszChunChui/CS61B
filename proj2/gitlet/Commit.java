@@ -25,13 +25,14 @@ public class Commit implements Serializable {
      */
 
     /** The message of this Commit. */
-    public static final File COMMIT_DIR = Repository.COMMIT_DIR;
+    private static final File COMMIT_DIR = Repository.COMMIT_DIR;
     private String message;
     private Date timestamp;
-    public ArrayList<String> parent = new ArrayList<>();
+    private ArrayList<String> parent = new ArrayList<>();
     private HashMap filetracker;
     private String UID;
-    /** Something that keeps track of what files this commit is tracking */
+    private static final File CommitSet = Repository.CommitSet;
+
 
     public Commit(String usermessage, String parentUID, Date date, HashMap staged) {
         this.message = usermessage;
@@ -83,10 +84,16 @@ public class Commit implements Serializable {
 
     /** reading from the commit file, store itself init */
     public void storecommit() {
+        /** store this Commit Object in Commit folder */
         String UID = this.getUID();
         File twodigits = Utils.join(COMMIT_DIR, UID.substring(0, 2));
         twodigits.mkdir();
         File rest = Utils.join(twodigits, UID.substring(2));
         writeObject(rest, this);
+
+        /** store the Commit UID in a Set Object */
+        HashSet<String> UIDSet = readObject(CommitSet, HashSet.class);
+        UIDSet.add(UID);
+        writeObject(CommitSet, UIDSet);
     }
 }
