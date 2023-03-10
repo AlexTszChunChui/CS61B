@@ -1,20 +1,15 @@
 package gitlet;
 
-import jdk.jshell.execution.Util;
-
 import java.io.File;
 import java.io.IOException;
 import java.util.*;
 
 import static gitlet.Utils.*;
 
-// TODO: any imports you need here
 
 /** Represents a gitlet repository.
- *  TODO: It's a good idea to give a description here of what else this Class
- *  does at a high level.
- *
- *  @author TODO
+ *  Simplify a real git but with some function reduced
+ *  @author Tsz Chun Chui
  */
 public class Repository  {
 
@@ -67,9 +62,9 @@ public class Repository  {
             return;
         }
         /** adding added file to blops and StagingMap */
+        String contents = readContentsAsString(staging);
         HashMap StagingMap = stagingarea();
-        HashMap tracked = headcommit().gettracker();
-        byte[] contents = readContents(staging);
+        Map tracked = headcommit().gettracker();
         String UID = Utils.sha1(contents);
         File staged = new File (blops, UID);
 
@@ -94,7 +89,7 @@ public class Repository  {
         }
         /** createing new Commit Object instance variable */
         Commit parent = headcommit();
-        HashMap tracker = parent.gettracker();
+        Map tracker = parent.gettracker();
 
         /** copy staged history from current commit and update it base on Staging Area */
         for (Map.Entry<String, String> entry : StagingMap.entrySet()) {
@@ -106,7 +101,9 @@ public class Repository  {
                 tracker.put(filename, UID);
             }
         }
-        Commit commit = new Commit(message, parent.getUID(), new Date(), tracker);
+        List<String> parentUid = new ArrayList<>();
+        parentUid.add(parent.getUID());
+        Commit commit = new Commit(message, parentUid, new Date(), tracker);
 
         /** updating all the information */
         String UID = commit.getUID();
@@ -116,7 +113,7 @@ public class Repository  {
 
     public static void remove(String name) {
         HashMap<String, String> StagingMap = stagingarea();
-        HashMap tracked = headcommit().gettracker();
+        Map tracked = headcommit().gettracker();
         File rm = new File(CWD, name);
 
         if (StagingMap.containsKey(name)) {
@@ -325,6 +322,106 @@ public class Repository  {
         checkout(pastcommit, pastcommit.gettracker().keySet());
     }
 
+    /** performing check before any actions */
+    public static void mergeCheck(String branchName) {
+        File prevBranch = join(Branch, branchName);
+        if (!stagingarea().isEmpty()) {
+            System.out.println("You have uncommitted changes");
+        } else if (!prevBranch.exists()) {
+            System.out.println("A branch with that name does not exist.");
+        } else if (iscurrentbranch(prevBranch)) {
+            System.out.println("Cannot merge a branch with itself.");
+        } else if (untrackedfile(Commit.getCommit(readContentsAsString(prevBranch)))) {
+            System.out.println("There is an untracked file in the way; delete it, or add and commit it first.");
+        } else {
+            merge(branchName);
+        }
+    }
+    /** merging two branches into one */
+    private static void merge(String branchName) {
+        String ancestorId = findAncestor(branchName);
+        String branchId = readContentsAsString(join(Branch, branchName));
+
+        if (ancestorId.equals(branchId)) {
+            System.out.println("Given branch is an ancestor of the current branch.");
+            return;
+        } else if (ancestorId.equals(headcommit().getUID())) {
+            checkoutbranch(branchName);
+            System.out.println("Current branch fast-forwarded.");
+            return;
+        }
+
+        Commit other = Commit.getCommit(branchId);
+        Commit ancestor = Commit.getCommit(ancestorId);
+
+        Map headTracker = headcommit().gettracker();
+        Map ancestorTracker = ancestor.gettracker();
+        Map otherTracker = other.gettracker();
+        System.out.println(headTracker);
+        System.out.println(otherTracker);
+        System.out.println(ancestorTracker);
+        boolean conflicted = false;
+        for (Object fileName : otherTracker.keySet()) {
+            /** file exists in all three Commit */
+            if (ancestorTracker.containsKey(fileName) && headTracker.containsKey(fileName)) {
+                String otherFile = (String) otherTracker.get(fileName);
+                String ancestorFile = (String) ancestorTracker.get(fileName);
+                String headFile = (String) headTracker.get(fileName);
+                /** only the other branch modified the file */
+                if (headFile.equals(ancestorFile) && !otherFile.equals(headFile)) {
+                    checkoutpastcommit(branchId, (String) fileName);
+                    stagingarea().put((String) fileName, otherFile);
+                }
+                /** both head & other modified the file */
+                else if (!headFile.equals(ancestorFile) && !otherFile.equals(headFile)) {
+                    conflict(headFile, otherFile, (String) fileName);
+                    conflicted = true;
+                }
+
+            /** absent at the split point and exists in both head and other */
+            } else if (!ancestorTracker.containsKey(fileName) && headTracker.containsKey(fileName)) {
+                String headFile = (String) headTracker.get(fileName);
+                String otherFile = (String) otherTracker.get(fileName);
+                if (!headFile.equals(otherFile)) {
+                    conflict(headFile, otherFile, (String) fileName);
+                    conflicted = true;
+                }
+
+            /** only exists in other */
+            } else if (!ancestorTracker.containsKey(fileName) && !headTracker.containsKey(fileName)) {
+                String otherFile = (String) otherTracker.get(fileName);
+                checkoutpastcommit(branchId, (String) fileName);
+                stagingarea().put((String) fileName, otherFile);
+
+            /** exists in other and ancestor but not in head */
+            } else if (!headTracker.containsKey(fileName) && ancestorTracker.containsKey(fileName)) {
+                String otherFile = (String) otherTracker.get(fileName);
+                String ancestorFile = (String) ancestorTracker.get(fileName);
+                if (!otherFile.equals(ancestorFile)) {
+                    conflict(null, otherFile, (String) fileName);
+                    conflicted = true;
+                }
+            }
+        }
+        /** searching for key only exists in headCommit */
+        for (Object fileName : headTracker.keySet()) {
+            if (ancestorTracker.containsKey(fileName) && !otherTracker.containsKey(fileName)) {
+                String ancestorFile = (String) ancestorTracker.get(fileName);
+                String headFile = (String) headTracker.get(fileName);
+                if (ancestorFile.equals(headFile)) {
+                    stagingarea().put((String) fileName, null);
+                } else {
+                    conflict(headFile, null, (String) fileName);
+                    conflicted = true;
+                }
+            }
+        }
+        commit("Merged " + branchName + " into" + readContentsAsString(Head));
+        if (conflicted) {
+            System.out.println("Encountered a merge conflict.");
+        }
+    }
+
     /** shortcut for creating file */
     protected static void createfile(File file) {
         try {
@@ -387,5 +484,66 @@ public class Repository  {
     /** return the headfile object in relative branch of current Head pointer point at */
     private static File Headfile() {
         return join(Branch, readContentsAsString(Head));
+    }
+
+    /** find the common ancestor commit UID of the given branch and current branch */
+    private static String findAncestor(String branchName) {
+        String branchId = readContentsAsString(join(Branch, branchName));
+        Map<String, Integer> other = allAncestor(branchId);
+        String headId = readContentsAsString(Headfile());
+        Map<String, Integer> currentHead = allAncestor(headId);
+
+        String closetId = null;
+        int closetValue = Integer.MAX_VALUE;
+        for (String id : currentHead.keySet()) {
+            if (other.containsKey(id) && currentHead.get(id) < closetValue) {
+                closetId = id;
+                closetValue = currentHead.get(id);
+            }
+        }
+        return closetId;
+    }
+
+    private static Map<String, Integer> allAncestor(String commitId) {
+        Queue<String> pastCommit = new ArrayDeque<>();
+        Map<String, Integer> pastUid = new TreeMap<>();
+        pastCommit.offer(commitId);
+
+        int depth = 1;
+        while (!pastCommit.isEmpty()) {
+            Commit c = Commit.getCommit(pastCommit.poll());
+            pastUid.put(c.getUID(), depth);
+            if (c.getParentList() == null) {
+                break;
+            }
+            for (String id : c.getParentList()) {
+                pastCommit.offer(id);
+            }
+            depth += 1;
+        }
+        return pastUid;
+    }
+
+    private static void conflict(String headFile, String otherFile, String fileName) {
+        String headContent = "";
+        String otherContent = "";
+
+        if (headFile == null) {
+            otherContent = readContentsAsString(join(blops, otherFile));
+        } else if (otherFile == null) {
+            headContent = readContentsAsString(join(blops, headFile));
+        } else {
+            otherContent = readContentsAsString(join(blops, otherFile));
+            headContent = readContentsAsString(join(blops, headFile));
+        }
+
+        String contents = "<<<<<<< HEAD\n" + headContent + "=======\n" + otherContent + ">>>>>>>";
+        File current = join(CWD, fileName);
+        if (!current.exists()) {
+            createfile(current);
+        }
+        writeContents(current, contents);
+        System.out.println(contents);
+        add(fileName);
     }
 }

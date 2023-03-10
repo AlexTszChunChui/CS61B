@@ -1,7 +1,5 @@
 package gitlet;
 
-// TODO: any imports you need here
-
 import java.io.File;
 import java.io.Serializable;
 import java.text.SimpleDateFormat;
@@ -10,36 +8,27 @@ import java.util.*;
 import static gitlet.Utils.*;
 
 /** Represents a gitlet commit object.
- *  TODO: It's a good idea to give a description here of what else this Class
  *  does at a high level.
- *
- *  @author TODO
+ *  @author Tsz Chun Chui
  */
 public class Commit implements Serializable {
-    /**
-     * TODO: add instance variables here.
-     *
-     * List all instance variables of the Commit class here with a useful
-     * comment above them describing what that variable represents and how that
-     * variable is used. We've provided one example for `message`.
-     */
 
     /** The message of this Commit. */
     private static final File COMMIT_DIR = Repository.COMMIT_DIR;
     private String message;
     private Date timestamp;
-    private ArrayList<String> parent = new ArrayList<>();
-    private HashMap filetracker;
+    private List<String> parent;
+    private Map filetracker;
     private String UID;
-    private static final File CommitSet = Repository.CommitSet;
+    private static final File COMMITSET = Repository.CommitSet;
 
 
-    public Commit(String usermessage, String parentUID, Date date, HashMap staged) {
+    public Commit(String usermessage, List<String> parentUID, Date date, Map staged) {
         this.message = usermessage;
-        this.parent.add(parentUID);
+        this.parent = parentUID;
         this.timestamp = date;
         this.filetracker = staged;
-        this.UID = Utils.sha1(message, parent.toString(), timestamp.toString(), filetracker.toString());
+        this.UID = Utils.sha1(message, timestamp.toString(), filetracker.toString());
         this.storecommit();
     }
 
@@ -53,7 +42,14 @@ public class Commit implements Serializable {
     }
 
     public Commit getParent() {
+        if (this.parent == null) {
+            return null;
+        }
         return getCommit(this.parent.get(0));
+    }
+
+    public List<String> getParentList() {
+        return parent;
     }
 
     public static Commit getCommit(String UID) {
@@ -77,7 +73,7 @@ public class Commit implements Serializable {
         }
     }
 
-    public HashMap gettracker() {
+    public Map gettracker() {
         return this.filetracker;
     }
 
@@ -95,8 +91,8 @@ public class Commit implements Serializable {
         writeObject(rest, this);
 
         /** store the Commit UID in a Set Object */
-        HashSet<String> UIDSet = readObject(CommitSet, HashSet.class);
+        HashSet<String> UIDSet = readObject(COMMITSET, HashSet.class);
         UIDSet.add(UID);
-        writeObject(CommitSet, UIDSet);
+        writeObject(COMMITSET, UIDSet);
     }
 }
