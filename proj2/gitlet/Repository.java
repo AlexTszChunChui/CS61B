@@ -140,6 +140,13 @@ public class Repository  {
         while (head != null) {
             System.out.println("===");
             System.out.println("commit " + head.getUID());
+            List parent = head.getParentList();
+            if (parent != null && parent.size() > 1) {
+                String parent1 = (String) parent.get(0);
+                String parent2 = (String) parent.get(1);
+                String message = String.format("Merge: %s %s", parent1.substring(0, 6), parent2.substring(0, 6));
+                System.out.println(message);
+            }
             System.out.println("Date: " + head.getTimestamp());
             System.out.println(head.getMessage());
             System.out.println("");
