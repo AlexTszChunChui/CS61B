@@ -16,7 +16,7 @@ public class Main {
         if (args.length == 0) {
             System.out.println("Please enter a command:");
             System.exit(0);
-        } else if (!Repository.Head.exists()) {
+        } else if (!Repository.GITLET_DIR.exists() && !args[0].equals("init")) {
             System.out.println("Not in an initialized Gitlet directory");
         } else {
             String firstArg = args[0];
