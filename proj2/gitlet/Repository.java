@@ -418,8 +418,7 @@ public class Repository  {
                 String ancestorFile = (String) ancestorTracker.get(fileName);
                 String headFile = (String) headTracker.get(fileName);
                 if (ancestorFile.equals(headFile)) {
-                    StagingMap.put((String) fileName, null);
-                    writeObject(StagingArea, StagingMap);
+                    remove((String) fileName);
                 } else {
                     conflict(headFile, null, (String) fileName);
                     conflicted = true;

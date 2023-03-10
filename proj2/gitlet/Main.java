@@ -50,17 +50,9 @@ public class Main {
                     Repository.remove(args[1]);
                     break;
                 case "log":
-                    if (args.length != 1) {
-                        System.out.println("Incorrect operands.");
-                        break;
-                    }
                     Repository.printlog();
                     break;
                 case "global-log":
-                    if (args.length != 1) {
-                        System.out.println("Incorrect operands.");
-                        break;
-                    }
                     Repository.printgloballog();
                     break;
                 case "checkout":
@@ -99,17 +91,9 @@ public class Main {
                     Repository.rmbranch(args[1]);
                     break;
                 case "status":
-                    if (args.length != 1) {
-                        System.out.println("Incorrect operands.");
-                        break;
-                    }
                     Repository.status();
                     break;
                 case "reset":
-                    if (args.length != 1) {
-                        System.out.println("Incorrect operands.");
-                        break;
-                    }
                     Repository.reset(args[1]);
                     break;
                 case "merge":
