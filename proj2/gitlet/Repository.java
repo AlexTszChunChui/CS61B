@@ -65,7 +65,7 @@ public class Repository  {
         String contents = readContentsAsString(staging);
         HashMap StagingMap = stagingarea();
         Map tracked = headcommit().gettracker();
-        String UID = Utils.sha1(contents);
+        String UID = Utils.sha1(name + contents);
         File staged = new File (blops, UID);
 
         if (staged.exists() && tracked.containsKey(name)) {
@@ -357,9 +357,7 @@ public class Repository  {
         Map headTracker = headcommit().gettracker();
         Map ancestorTracker = ancestor.gettracker();
         Map otherTracker = other.gettracker();
-        System.out.println(headTracker);
-        System.out.println(otherTracker);
-        System.out.println(ancestorTracker);
+
         boolean conflicted = false;
         for (Object fileName : otherTracker.keySet()) {
             /** file exists in all three Commit */
@@ -416,7 +414,7 @@ public class Repository  {
                 }
             }
         }
-        commit("Merged " + branchName + " into" + readContentsAsString(Head));
+        commit("Merged " + branchName + " into " + readContentsAsString(Head));
         if (conflicted) {
             System.out.println("Encountered a merge conflict.");
         }
@@ -537,13 +535,13 @@ public class Repository  {
             headContent = readContentsAsString(join(blops, headFile));
         }
 
-        String contents = "<<<<<<< HEAD\n" + headContent + "=======\n" + otherContent + ">>>>>>>";
+        String contents = "<<<<<<< HEAD\n" + headContent + "=======\n" + otherContent + ">>>>>>>\n";
         File current = join(CWD, fileName);
         if (!current.exists()) {
             createfile(current);
         }
         writeContents(current, contents);
-        System.out.println(contents);
         add(fileName);
     }
+    
 }

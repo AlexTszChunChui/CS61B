@@ -77,6 +77,7 @@ public class Main {
                     break;
                 case "merge":
                     Repository.mergeCheck(args[1]);
+                    break;
             }
         }
     }
