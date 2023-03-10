@@ -80,7 +80,7 @@ public class Repository  {
         writeObject(StagingArea, StagingMap);
     }
 
-    public static void commit(String message) {
+    public static void commit(String message, String secondParent) {
         /** Check if there are any changes to commit */
         HashMap<String, String> StagingMap = stagingarea();
         if (StagingMap.isEmpty()) {
@@ -103,6 +103,9 @@ public class Repository  {
         }
         List<String> parentUid = new ArrayList<>();
         parentUid.add(parent.getUID());
+        if (secondParent != null) {
+            parentUid.add(secondParent);
+        }
         Commit commit = new Commit(message, parentUid, new Date(), tracker);
 
         /** updating all the information */
@@ -174,6 +177,9 @@ public class Repository  {
 
     private static void printbranch() {
         List<String> lst = plainFilenamesIn(Branch);
+        if (lst == null) {
+            return;
+        }
         Collections.sort(lst);
         for (String name : lst) {
             if (iscurrentbranch(join(Branch, name))) {
@@ -360,6 +366,8 @@ public class Repository  {
 
         boolean conflicted = false;
         for (Object fileName : otherTracker.keySet()) {
+            HashMap StagingMap = stagingarea();
+
             /** file exists in all three Commit */
             if (ancestorTracker.containsKey(fileName) && headTracker.containsKey(fileName)) {
                 String otherFile = (String) otherTracker.get(fileName);
@@ -368,7 +376,8 @@ public class Repository  {
                 /** only the other branch modified the file */
                 if (headFile.equals(ancestorFile) && !otherFile.equals(headFile)) {
                     checkoutpastcommit(branchId, (String) fileName);
-                    stagingarea().put((String) fileName, otherFile);
+                    StagingMap.put((String) fileName, otherFile);
+                    writeObject(StagingArea, StagingMap);
                 }
                 /** both head & other modified the file */
                 else if (!headFile.equals(ancestorFile) && !otherFile.equals(headFile)) {
@@ -389,7 +398,8 @@ public class Repository  {
             } else if (!ancestorTracker.containsKey(fileName) && !headTracker.containsKey(fileName)) {
                 String otherFile = (String) otherTracker.get(fileName);
                 checkoutpastcommit(branchId, (String) fileName);
-                stagingarea().put((String) fileName, otherFile);
+                StagingMap.put((String) fileName, otherFile);
+                writeObject(StagingArea, StagingMap);
 
             /** exists in other and ancestor but not in head */
             } else if (!headTracker.containsKey(fileName) && ancestorTracker.containsKey(fileName)) {
@@ -403,18 +413,20 @@ public class Repository  {
         }
         /** searching for key only exists in headCommit */
         for (Object fileName : headTracker.keySet()) {
+            HashMap StagingMap = stagingarea();
             if (ancestorTracker.containsKey(fileName) && !otherTracker.containsKey(fileName)) {
                 String ancestorFile = (String) ancestorTracker.get(fileName);
                 String headFile = (String) headTracker.get(fileName);
                 if (ancestorFile.equals(headFile)) {
-                    stagingarea().put((String) fileName, null);
+                    StagingMap.put((String) fileName, null);
+                    writeObject(StagingArea, StagingMap);
                 } else {
                     conflict(headFile, null, (String) fileName);
                     conflicted = true;
                 }
             }
         }
-        commit("Merged " + branchName + " into " + readContentsAsString(Head));
+        commit("Merged " + branchName + " into " + readContentsAsString(Head), branchId);
         if (conflicted) {
             System.out.println("Encountered a merge conflict.");
         }
@@ -543,5 +555,5 @@ public class Repository  {
         writeContents(current, contents);
         add(fileName);
     }
-    
+
 }

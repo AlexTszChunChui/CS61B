@@ -1,5 +1,8 @@
 package gitlet;
 
+import static gitlet.Utils.error;
+import static gitlet.Utils.message;
+
 /** Driver class for Gitlet, a subset of the Git version-control system.
  *  @author Tsz Chun Chui
  */
@@ -11,15 +14,25 @@ public class Main {
     public static void main(String[] args) {
         /** what if args is empty? */
         if (args.length == 0) {
-            System.out.println("Invalid number of arguments");
-        }
-        else {
+            System.out.println("Please enter a command:");
+            System.exit(0);
+        } else if (!Repository.Head.exists()) {
+            System.out.println("Not in an initialized Gitlet directory");
+        } else {
             String firstArg = args[0];
             switch(firstArg) {
                 case "init":
+                    if (args.length != 1) {
+                        System.out.println("Incorrect operands.");
+                        break;
+                    }
                     Repository.initgitlet();
                     break;
                 case "add":
+                    if (args.length != 2) {
+                        System.out.println("Incorrect operands.");
+                        break;
+                    }
                     Repository.add(args[1]);
                     break;
                 case "commit":
@@ -27,15 +40,27 @@ public class Main {
                         System.out.println("Please enter a commit message.");
                         break;
                     }
-                    Repository.commit(args[1]);
+                    Repository.commit(args[1], null);
                     break;
                 case "rm":
+                    if (args.length != 2) {
+                        System.out.println("Incorrect operands.");
+                        break;
+                    }
                     Repository.remove(args[1]);
                     break;
                 case "log":
+                    if (args.length != 1) {
+                        System.out.println("Incorrect operands.");
+                        break;
+                    }
                     Repository.printlog();
                     break;
                 case "global-log":
+                    if (args.length != 1) {
+                        System.out.println("Incorrect operands.");
+                        break;
+                    }
                     Repository.printgloballog();
                     break;
                 case "checkout":
@@ -49,35 +74,54 @@ public class Main {
                         Repository.checkoutbranch(args[1]);
                         break;
                     } else {
-                        System.out.println("Incorrect operands");
+                        System.out.println("Incorrect operands.");
                         break;
                     }
                 case "branch":
+                    if (args.length != 2) {
+                        System.out.println("Incorrect operands.");
+                        break;
+                    }
                     Repository.branch(args[1]);
                     break;
                 case "find":
                     if (args.length != 2) {
-                        System.out.println("Incorrect operands");
+                        System.out.println("Incorrect operands.");
                         break;
                     }
                     Repository.find(args[1]);
                     break;
                 case "rm-branch":
                     if (args.length != 2) {
-                        System.out.println("Incorrect operands");
+                        System.out.println("Incorrect operands.");
                         break;
                     }
                     Repository.rmbranch(args[1]);
                     break;
                 case "status":
+                    if (args.length != 1) {
+                        System.out.println("Incorrect operands.");
+                        break;
+                    }
                     Repository.status();
                     break;
                 case "reset":
+                    if (args.length != 1) {
+                        System.out.println("Incorrect operands.");
+                        break;
+                    }
                     Repository.reset(args[1]);
                     break;
                 case "merge":
+                    if (args.length != 2) {
+                        System.out.println("Incorrect operands.");
+                        break;
+                    }
                     Repository.mergeCheck(args[1]);
                     break;
+                default:
+                    System.out.println("No command with that name exists.");
+                    System.exit(0);
             }
         }
     }
