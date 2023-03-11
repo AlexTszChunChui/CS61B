@@ -68,7 +68,7 @@ public class Repository  {
         String UID = Utils.sha1(name + contents);
         File staged = new File (blops, UID);
 
-        if (staged.exists() && tracked.containsKey(name)) {
+        if (staged.exists() && tracked.containsKey(name) && tracked.get(name).equals(UID)) {
             StagingMap.remove(name);
         } else if (staged.exists()) {
             StagingMap.put(name, UID);
