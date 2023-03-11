@@ -432,7 +432,8 @@ public class Repository  {
                 }
             }
         }
-        commit("Merged " + branchName + " into " + readContentsAsString(Head), branchId);
+        String commitMessage = String.format("Merged %s into %s.", branchName, readContentsAsString(Head));
+        commit(commitMessage, branchId);
         if (conflicted) {
             System.out.println("Encountered a merge conflict.");
         }
