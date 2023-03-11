@@ -144,7 +144,7 @@ public class Repository  {
             if (parent != null && parent.size() > 1) {
                 String parent1 = (String) parent.get(0);
                 String parent2 = (String) parent.get(1);
-                String message = String.format("Merge: %s %s", parent1.substring(0, 6), parent2.substring(0, 6));
+                String message = String.format("Merge: %s %s", parent1.substring(0, 7), parent2.substring(0, 7));
                 System.out.println(message);
             }
             System.out.println("Date: " + head.getTimestamp());
