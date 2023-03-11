@@ -65,7 +65,7 @@ public class Repository  {
         HashMap stagingMap = stagingarea();
         Map tracked = headcommit().gettracker();
         String uid = Utils.sha1(name + contents);
-        File staged = new File (BLOPS, uid);
+        File staged = new File(BLOPS, uid);
 
         if (staged.exists() && tracked.containsKey(name) && tracked.get(name).equals(uid)) {
             stagingMap.remove(name);
@@ -81,8 +81,8 @@ public class Repository  {
 
     public static void commit(String message, String secondParent) {
         /** Check if there are any changes to commit */
-        HashMap<String, String> StagingMap = stagingarea();
-        if (StagingMap.isEmpty()) {
+        Map<String, String> stagingMap = stagingarea();
+        if (stagingMap.isEmpty()) {
             System.out.println("No changes added to the commit.");
             return;
         }
@@ -91,13 +91,13 @@ public class Repository  {
         Map tracker = parent.gettracker();
 
         /** copy staged history from current commit and update it base on Staging Area */
-        for (Map.Entry<String, String> entry : StagingMap.entrySet()) {
+        for (Map.Entry<String, String> entry : stagingMap.entrySet()) {
             String filename = entry.getKey();
-            String UID = entry.getValue();
-            if (UID == null) {
+            String uid = entry.getValue();
+            if (uid == null) {
                 tracker.remove(filename);
             } else {
-                tracker.put(filename, UID);
+                tracker.put(filename, uid);
             }
         }
         List<String> parentUid = new ArrayList<>();
@@ -344,21 +344,22 @@ public class Repository  {
         } else if (untrackedfile(Commit.getCommit(readContentsAsString(prevBranch)))) {
             exit("There is an untracked file in the way; delete it, or add and commit it first.");
         } else {
-            merge(branchName);
+            String ancestorId = findAncestor(branchName);
+            String branchId = readContentsAsString(join(BRANCH, branchName));
+
+            if (ancestorId.equals(branchId)) {
+                exit("Given branch is an ancestor of the current branch.");
+            } else if (ancestorId.equals(headcommit().getUID())) {
+                checkoutbranch(branchName);
+                exit("Current branch fast-forwarded.");
+            } else {
+                merge(branchId, ancestorId, branchName);
+            }
         }
     }
+
     /** merging two branches into one */
-    private static void merge(String branchName) {
-        String ancestorId = findAncestor(branchName);
-        String branchId = readContentsAsString(join(BRANCH, branchName));
-
-        if (ancestorId.equals(branchId)) {
-            exit("Given branch is an ancestor of the current branch.");
-        } else if (ancestorId.equals(headcommit().getUID())) {
-            checkoutbranch(branchName);
-            exit("Current branch fast-forwarded.");
-        }
-
+    private static void merge(String branchId, String ancestorId, String branchName) {
         Commit other = Commit.getCommit(branchId);
         Commit ancestor = Commit.getCommit(ancestorId);
 
@@ -385,7 +386,6 @@ public class Repository  {
                         conflicted = true;
                     }
                 }
-
             /** absent at the split point and exists in both head and other */
             } else if (!splitTrack.containsKey(fName) && hdTrack.containsKey(fName)) {
                 String headFile = (String) hdTrack.get(fName);
@@ -394,13 +394,11 @@ public class Repository  {
                     conflict(headFile, otherFile, (String) fName);
                     conflicted = true;
                 }
-
             /** only exists in other */
             } else if (!splitTrack.containsKey(fName) && !hdTrack.containsKey(fName)) {
                 String otherFile = (String) otherTrack.get(fName);
                 checkoutpastcommit(branchId, (String) fName);
                 stagingFile((String) fName, otherFile);
-
             /** exists in other and ancestor but not in head */
             } else if (!hdTrack.containsKey(fName) && splitTrack.containsKey(fName)) {
                 String otherFile = (String) otherTrack.get(fName);
