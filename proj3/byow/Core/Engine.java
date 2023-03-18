@@ -2,12 +2,24 @@ package byow.Core;
 
 import byow.TileEngine.TERenderer;
 import byow.TileEngine.TETile;
+import byow.TileEngine.Tileset;
+import byow.lab12.HexWorld;
+
+import java.awt.*;
+import java.io.File;
+import java.io.IOException;
+import java.util.Random;
 
 public class Engine {
     TERenderer ter = new TERenderer();
     /* Feel free to change the width and height. */
-    public static final int WIDTH = 80;
-    public static final int HEIGHT = 30;
+    public static final int WIDTH = 150;
+    public static final int HEIGHT = 80;
+    public static final File CWD = new File(System.getProperty("user.dir"));
+    public static final File SAVE = new File(CWD, "save");
+    public long SEED;
+    public Random RANDOM;
+
 
     /**
      * Method used for exploring a fresh world. This method should handle all inputs,
@@ -46,7 +58,42 @@ public class Engine {
         // See proj3.byow.InputDemo for a demo of how you can make a nice clean interface
         // that works for many different input types.
 
-        TETile[][] finalWorldFrame = null;
+        // Split the user input into seed and other command
+        String numberOnly = input.replaceAll("[^0-9]", "");
+        SEED= Long.parseLong(numberOnly);
+        RANDOM = new Random(SEED);
+
+        TETile[][] finalWorldFrame = new TETile[WIDTH][HEIGHT];
+        fillBoardWithNothing(finalWorldFrame);
+        Dungeon_Map map = new Dungeon_Map(WIDTH, HEIGHT, 30, 5, 18);
+        map.drawDungeon(finalWorldFrame, RANDOM);
         return finalWorldFrame;
+    }
+
+    public static void main(String[] args) {
+        Engine engine = new Engine();
+        engine.ter.initialize(WIDTH, HEIGHT);
+        TETile[][] world = engine.interactWithInputString("N1006S");
+        engine.ter.renderFrame(world);
+    }
+
+    public static void fillBoardWithNothing(TETile[][] tiles) {
+        int height = tiles[0].length;
+        int width = tiles.length;
+        for (int x = 0; x < width; x += 1) {
+            for (int y = 0; y < height; y += 1) {
+                tiles[x][y] = Tileset.NOTHING;
+            }
+        }
+    }
+
+    public static void autoSave(TETile[][] tiles) {
+        if (!SAVE.exists()) {
+            try {
+                SAVE.createNewFile();
+            } catch (IOException ex) {
+                ex.printStackTrace();
+            }
+        }
     }
 }
