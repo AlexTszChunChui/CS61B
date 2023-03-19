@@ -1,11 +1,14 @@
 package byow.lab13;
 
 import byow.Core.RandomUtils;
+import byow.TileEngine.Tileset;
 import edu.princeton.cs.introcs.StdDraw;
 
 import java.awt.Color;
 import java.awt.Font;
 import java.util.Random;
+import java.util.Timer;
+import java.util.TimerTask;
 
 public class MemoryGame {
     /** The width of the window of this game. */
@@ -35,7 +38,7 @@ public class MemoryGame {
         }
 
         long seed = Long.parseLong(args[0]);
-        MemoryGame game = new MemoryGame(40, 40, seed);
+        MemoryGame game = new MemoryGame(60, 40, seed);
         game.startGame();
     }
 
@@ -52,33 +55,97 @@ public class MemoryGame {
         StdDraw.setYscale(0, this.height);
         StdDraw.clear(Color.BLACK);
         StdDraw.enableDoubleBuffering();
-
-        //TODO: Initialize random number generator
+        this.rand = new Random(seed);
     }
 
     public String generateRandomString(int n) {
-        //TODO: Generate random string of letters of length n
-        return null;
+        int x = 0;
+        String randomString = "";
+        while (x < n) {
+            int index = rand.nextInt(CHARACTERS.length);
+            randomString += CHARACTERS[index];
+            x += 1;
+        }
+        return randomString;
     }
 
     public void drawFrame(String s) {
-        //TODO: Take the string and display it in the center of the screen
-        //TODO: If game is not over, display relevant game information at the top of the screen
+        StdDraw.clear(Color.BLACK);
+        Font font = new Font("Monaco", Font.BOLD, 30);
+        StdDraw.setFont(font);
+        StdDraw.setPenColor(Color.CYAN);
+        StdDraw.text(this.width / 2, this.height / 2, s);
+        StdDraw.text(5, this.height - 1.5, "Round: " + Integer.toString(this.round));
+        if (playerTurn) {
+            StdDraw.text(this.width / 2, this.height - 1.5, "Type!");
+        }
+        else {
+            StdDraw.text(this.width / 2, this.height - 1.5, "Watch!");
+        }
+
+        int dice = rand.nextInt(ENCOURAGEMENT.length);
+        StdDraw.text(this.width - 8, this.height - 1.5, ENCOURAGEMENT[dice]);
+        StdDraw.line(0, this.height - 2.5, this.width, this.height - 2.5);
+        StdDraw.show();
     }
 
     public void flashSequence(String letters) {
-        //TODO: Display each character in letters, making sure to blank the screen between letters
+        int x = 0;
+        while (x < letters.length()) {
+            String letter = Character.toString(letters.charAt(x));
+            drawFrame(letter);
+            try {
+                Thread.sleep(1000);
+                drawFrame("");
+                Thread.sleep(500);
+            } catch (InterruptedException e) {
+                throw new RuntimeException(e);
+            }
+            x += 1;
+        }
     }
 
     public String solicitNCharsInput(int n) {
-        //TODO: Read n letters of player input
-        return null;
+        String typed = "";
+        while (true) {
+            if (StdDraw.hasNextKeyTyped()) {
+                String new_char = Character.toString(StdDraw.nextKeyTyped());
+                drawFrame(new_char);
+                typed += new_char;
+            }
+            if (typed.length() == n) {
+                break;
+            }
+        }
+        return typed;
     }
 
     public void startGame() {
-        //TODO: Set any relevant variables before the game starts
 
-        //TODO: Establish Engine loop
+        this.round = 1;
+        this.gameOver = false;
+
+        while (!this.gameOver) {
+            drawFrame("Round: " + Integer.toString(this.round));
+            try {
+                Thread.sleep(1500);
+            } catch (InterruptedException e) {
+                throw new RuntimeException(e);
+            }
+            String quiz = generateRandomString(round);
+            flashSequence(quiz);
+            playerTurn = true;
+            drawFrame("");
+            String player_input = solicitNCharsInput(round);
+            if (player_input.equals(quiz)) {
+                round += 1;
+                playerTurn = false;
+            }
+            else {
+                gameOver = true;
+                drawFrame("Game Over! You made it to round: " + Integer.toString(round));
+            }
+        }
     }
 
 }
