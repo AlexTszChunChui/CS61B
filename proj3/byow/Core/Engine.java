@@ -20,7 +20,9 @@ public class Engine {
     public long SEED;
     public Random RANDOM;
     public TETile[][] WORLDFRAME;
+    public Player PLAYER;
     public boolean START = false;
+    public String INPUT = "";
 
     public Engine() {
         ter.initialize(WIDTH, HEIGHT);
@@ -33,17 +35,12 @@ public class Engine {
      * including inputs from the main menu.
      */
     public void interactWithKeyboard() {
-        while (true) {
+        if (!START) {
             ter.drawOpenMenu();
-            if (StdDraw.hasNextKeyTyped()) {
-                char c = Character.toUpperCase(StdDraw.nextKeyTyped());
-                System.out.println(c);
-                switch(c) {
-                    case 'N':
-                        getSeed();
-                    default:
-                }
-            }
+        }
+        InputSource inputSource = new KeyboardInputSource();
+        while (inputSource.possibleNextInput()) {
+            action(inputSource.getNextKey());
         }
     }
 
@@ -78,20 +75,14 @@ public class Engine {
         // that works for many different input types.
 
         // Split the user input into seed and other command
-        String numberOnly = input.replaceAll("[^0-9]", "");
-        if (numberOnly.length() < 1) {
-            return null;
+        input = input.toUpperCase();
+        drawMap(input);
+        String command = input.replaceAll("N[0-9]+S", "");
+        InputSource inputSource = new StringInputSource(command);
+        while (inputSource.possibleNextInput()) {
+            action(inputSource.getNextKey());
         }
-        SEED = Long.parseLong(numberOnly);
-        RANDOM = new Random(SEED);
-
-        Dungeon_Map map = new Dungeon_Map(WIDTH, HEIGHT, 30, 5, 18);
-        Player player = map.drawDungeon(WORLDFRAME, RANDOM);
-
-
-        ter.renderFrame(WORLDFRAME);
-        trackPlayerCommand(player);
-
+        interactWithKeyboard();
         return WORLDFRAME;
     }
 
@@ -106,60 +97,68 @@ public class Engine {
         }
     }
 
-    public void getSeed() {
-        String seed = "";
-        boolean finished = false;
-        while (!finished) {
-            ter.drawSetup(seed);
-            if (StdDraw.hasNextKeyTyped()) {
-                char c = Character.toUpperCase(StdDraw.nextKeyTyped());
-                String command = Character.toString(c);
-                System.out.println(command);
-                switch (command) {
-                    case "S" :
-                        if (seed.length() > 0) {
-                            interactWithInputString(seed);
-                            finished = true;
-                            break;
-                        }
-                    default:
-                        seed += command;
-                }
-
-            }
+    public void action(char c) {
+        if (c == 'Q') {
+            ter.drawOpenMenu();
+            INPUT = "";
+            START = false;
         }
-    }
-
-    public void trackPlayerCommand(Player player) {
-        while (true) {
-            ter.renderFrame(WORLDFRAME);
-            if (StdDraw.hasNextKeyTyped()) {
-                char c = Character.toUpperCase(StdDraw.nextKeyTyped());
-                if (c == 'Q') {
+        else {
+            switch (c) {
+                case 'W':
+                    if (START) {
+                        PLAYER.move(0, 1);
+                        ter.renderFrame(WORLDFRAME);
+                    }
                     break;
-                }
-                switch(c) {
-                    case 'W':
-                        player.move(0, 1);
-                        break;
-                    case 'S':
-                        player.move(0, -1);
-                        break;
-                    case 'A':
-                        player.move(-1, 0);
-                        break;
-                    case 'D':
-                        player.move(1, 0);
-                        break;
-                    default:
-                        break;
-                }
+                case 'S':
+                    if (START) {
+                        PLAYER.move(0, -1);
+                        ter.renderFrame(WORLDFRAME);
+                    } else {
+                        drawMap(INPUT);
+                        START = true;
+                    }
+                    break;
+                case 'A':
+                    if (START) {
+                        PLAYER.move(-1, 0);
+                        ter.renderFrame(WORLDFRAME);
+                    }
+                    break;
+                case 'D':
+                    if (START) {
+                        PLAYER.move(1, 0);
+                        ter.renderFrame(WORLDFRAME);
+                    }
+                    break;
+                case 'N':
+                    if (!START) {
+                        ter.drawSetup(INPUT);
+                    }
+                    break;
+                default:
+                    if (!START) {
+                        INPUT += c;
+                        ter.drawSetup(INPUT);
+                    }
+                    break;
             }
         }
     }
 
-    public void preProcess(char c) {
+    public void drawMap(String input) {
+        String numberOnly = input.replaceAll("[^0-9]", "");
+        if (numberOnly.length() < 1) {
+            return;
+        }
+        SEED = Long.parseLong(numberOnly);
+        RANDOM = new Random(SEED);
 
+        Dungeon_Map map = new Dungeon_Map(WIDTH, HEIGHT, 30, 5, 18);
+        PLAYER = map.drawDungeon(WORLDFRAME, RANDOM);
+
+        ter.renderFrame(WORLDFRAME);
     }
 
 
@@ -176,6 +175,6 @@ public class Engine {
     public static void main(String[] args) {
         Engine engine = new Engine();
         engine.ter.initialize(WIDTH, HEIGHT);
-        engine.interactWithKeyboard();
+        engine.interactWithInputString("n123sswwdasdassadwas");
     }
 }
