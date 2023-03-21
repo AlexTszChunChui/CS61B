@@ -4,6 +4,7 @@ import byow.TileEngine.TETile;
 import byow.TileEngine.Tileset;
 
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Random;
 
 /**
@@ -24,7 +25,7 @@ public class Dungeon_Map {
         ROOM_MAX_SIZE = max_size;
     }
 
-    public void drawDungeon(TETile[][] tiles, Random random) {
+    public Player drawDungeon(TETile[][] tiles, Random random) {
         ArrayList<Rect> rooms = new ArrayList<>();
         int number_of_rooms = 0;
 
@@ -56,6 +57,7 @@ public class Dungeon_Map {
             }
         }
         drawTunnels(tiles, rooms);
+        return generatePlayer(tiles, rooms);
     }
 
     // draw a rectangular room with wall surrounding it
@@ -162,5 +164,11 @@ public class Dungeon_Map {
                 tiles[x - 1][top + 1].equals(Tileset.NOTHING)) {
             tiles[x - 1][top + 1] = Tileset.WALL;
         }
+    }
+
+    public Player generatePlayer(TETile[][] tiles, List<Rect> lst) {
+        Rect room = lst.get(0);
+        Player player = new Player(tiles, room.centerX(), room.centerY());
+        return player;
     }
 }

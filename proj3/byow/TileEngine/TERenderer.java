@@ -86,6 +86,8 @@ public class TERenderer {
     public void renderFrame(TETile[][] world) {
         int numXTiles = world.length;
         int numYTiles = world[0].length;
+        Font font = new Font("Monaco", Font.BOLD, TILE_SIZE - 2);
+        StdDraw.setFont(font);
         StdDraw.clear(new Color(0, 0, 0));
         for (int x = 0; x < numXTiles; x += 1) {
             for (int y = 0; y < numYTiles; y += 1) {
@@ -96,6 +98,28 @@ public class TERenderer {
                 world[x][y].draw(x + xOffset, y + yOffset);
             }
         }
+        StdDraw.show();
+    }
+
+    public void drawOpenMenu() {
+        StdDraw.clear(new Color(0, 0, 0));
+        StdDraw.setPenColor(Color.CYAN);
+        Font font = new Font("Monaco", Font.BOLD, 30);
+        StdDraw.setFont(font);
+        StdDraw.text(this.width / 2, this.height / 2, "New Game(n)");
+        StdDraw.text(this.width / 2, this.height / 2 - 3, "Load Game(l)");
+        StdDraw.text(this.width / 2, this.height / 2 - 6, "Options(o)");
+        StdDraw.text(this.width / 2, this.height / 2 - 9, "Quit to Desktop(q)");
+        StdDraw.show();
+    }
+
+    public void drawSetup(String input) {
+        StdDraw.clear(new Color(0, 0, 0));
+        StdDraw.setPenColor(Color.CYAN);
+        Font font = new Font("Monaco", Font.BOLD, 30);
+        StdDraw.setFont(font);
+        StdDraw.text(this.width / 2, this.height / 2 + 2, "Please Enter a random seed for generate a dungeon");
+        StdDraw.text(this.width / 2, this.height / 2, "Your Seed: " + input);
         StdDraw.show();
     }
 }

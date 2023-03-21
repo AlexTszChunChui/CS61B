@@ -3,7 +3,7 @@ package byow.Core;
 import byow.TileEngine.TERenderer;
 import byow.TileEngine.TETile;
 import byow.TileEngine.Tileset;
-import byow.lab12.HexWorld;
+import edu.princeton.cs.introcs.StdDraw;
 
 import java.awt.*;
 import java.io.File;
@@ -19,13 +19,32 @@ public class Engine {
     public static final File SAVE = new File(CWD, "save");
     public long SEED;
     public Random RANDOM;
+    public TETile[][] WORLDFRAME;
+    public boolean START = false;
 
+    public Engine() {
+        ter.initialize(WIDTH, HEIGHT);
+        WORLDFRAME = new TETile[WIDTH][HEIGHT];
+        fillBoardWithNothing(WORLDFRAME);
+    }
 
     /**
      * Method used for exploring a fresh world. This method should handle all inputs,
      * including inputs from the main menu.
      */
     public void interactWithKeyboard() {
+        while (true) {
+            ter.drawOpenMenu();
+            if (StdDraw.hasNextKeyTyped()) {
+                char c = Character.toUpperCase(StdDraw.nextKeyTyped());
+                System.out.println(c);
+                switch(c) {
+                    case 'N':
+                        getSeed();
+                    default:
+                }
+            }
+        }
     }
 
     /**
@@ -60,22 +79,22 @@ public class Engine {
 
         // Split the user input into seed and other command
         String numberOnly = input.replaceAll("[^0-9]", "");
-        SEED= Long.parseLong(numberOnly);
+        if (numberOnly.length() < 1) {
+            return null;
+        }
+        SEED = Long.parseLong(numberOnly);
         RANDOM = new Random(SEED);
 
-        TETile[][] finalWorldFrame = new TETile[WIDTH][HEIGHT];
-        fillBoardWithNothing(finalWorldFrame);
         Dungeon_Map map = new Dungeon_Map(WIDTH, HEIGHT, 30, 5, 18);
-        map.drawDungeon(finalWorldFrame, RANDOM);
-        return finalWorldFrame;
+        Player player = map.drawDungeon(WORLDFRAME, RANDOM);
+
+
+        ter.renderFrame(WORLDFRAME);
+        trackPlayerCommand(player);
+
+        return WORLDFRAME;
     }
 
-    public static void main(String[] args) {
-        Engine engine = new Engine();
-        engine.ter.initialize(WIDTH, HEIGHT);
-        TETile[][] world = engine.interactWithInputString("N1006S");
-        engine.ter.renderFrame(world);
-    }
 
     public static void fillBoardWithNothing(TETile[][] tiles) {
         int height = tiles[0].length;
@@ -87,6 +106,63 @@ public class Engine {
         }
     }
 
+    public void getSeed() {
+        String seed = "";
+        boolean finished = false;
+        while (!finished) {
+            ter.drawSetup(seed);
+            if (StdDraw.hasNextKeyTyped()) {
+                char c = Character.toUpperCase(StdDraw.nextKeyTyped());
+                String command = Character.toString(c);
+                System.out.println(command);
+                switch (command) {
+                    case "S" :
+                        if (seed.length() > 0) {
+                            interactWithInputString(seed);
+                            finished = true;
+                            break;
+                        }
+                    default:
+                        seed += command;
+                }
+
+            }
+        }
+    }
+
+    public void trackPlayerCommand(Player player) {
+        while (true) {
+            ter.renderFrame(WORLDFRAME);
+            if (StdDraw.hasNextKeyTyped()) {
+                char c = Character.toUpperCase(StdDraw.nextKeyTyped());
+                if (c == 'Q') {
+                    break;
+                }
+                switch(c) {
+                    case 'W':
+                        player.move(0, 1);
+                        break;
+                    case 'S':
+                        player.move(0, -1);
+                        break;
+                    case 'A':
+                        player.move(-1, 0);
+                        break;
+                    case 'D':
+                        player.move(1, 0);
+                        break;
+                    default:
+                        break;
+                }
+            }
+        }
+    }
+
+    public void preProcess(char c) {
+
+    }
+
+
     public static void autoSave(TETile[][] tiles) {
         if (!SAVE.exists()) {
             try {
@@ -95,5 +171,11 @@ public class Engine {
                 ex.printStackTrace();
             }
         }
+    }
+
+    public static void main(String[] args) {
+        Engine engine = new Engine();
+        engine.ter.initialize(WIDTH, HEIGHT);
+        engine.interactWithKeyboard();
     }
 }
