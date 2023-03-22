@@ -3,14 +3,12 @@ package byow.Core;
 import byow.TileEngine.TERenderer;
 import byow.TileEngine.TETile;
 import byow.TileEngine.Tileset;
-import edu.princeton.cs.introcs.StdDraw;
-
-import java.awt.*;
 import java.io.File;
 import java.io.IOException;
+import java.io.Serializable;
 import java.util.Random;
 
-public class Engine {
+public class Engine implements Serializable {
     TERenderer ter = new TERenderer();
     /* Feel free to change the width and height. */
     public static final int WIDTH = 150;
@@ -40,7 +38,8 @@ public class Engine {
         }
         InputSource inputSource = new KeyboardInputSource();
         while (inputSource.possibleNextInput()) {
-            action(inputSource.getNextKey());
+            char c = inputSource.getNextKey();
+            action(c);
         }
     }
 
@@ -80,7 +79,12 @@ public class Engine {
         String command = input.replaceAll("N[0-9]+S", "");
         InputSource inputSource = new StringInputSource(command);
         while (inputSource.possibleNextInput()) {
-            action(inputSource.getNextKey());
+            char c = inputSource.getNextKey();
+            if (c == 'Q') {
+                action(c);
+                break;
+            }
+            action(c);
         }
         interactWithKeyboard();
         return WORLDFRAME;
@@ -98,10 +102,9 @@ public class Engine {
     }
 
     public void action(char c) {
-        if (c == 'Q') {
+        if (c == 'Q' && START) {
+            save();
             ter.drawOpenMenu();
-            INPUT = "";
-            START = false;
         }
         else {
             switch (c) {
@@ -137,6 +140,11 @@ public class Engine {
                         ter.drawSetup(INPUT);
                     }
                     break;
+                case 'L':
+                    if (!START) {
+                        loadGame();
+                    }
+                    break;
                 default:
                     if (!START) {
                         INPUT += c;
@@ -162,7 +170,7 @@ public class Engine {
     }
 
 
-    public static void autoSave(TETile[][] tiles) {
+    public void save() {
         if (!SAVE.exists()) {
             try {
                 SAVE.createNewFile();
@@ -170,11 +178,35 @@ public class Engine {
                 ex.printStackTrace();
             }
         }
+        PlayerSave save = new PlayerSave(this, PLAYER);
+        FileManagement.writeObject(SAVE, save);
+        WORLDFRAME = new TETile[WIDTH][HEIGHT];
+        RANDOM = null;
+        INPUT = "";
+        START = false;
+        PLAYER = null;
+
+        fillBoardWithNothing(WORLDFRAME);
+    }
+
+    public void loadGame() {
+        if (!SAVE.exists()) {
+            
+        }
+        PlayerSave save = (PlayerSave) FileManagement.readObject(SAVE);
+        this.WORLDFRAME = save.MAP;
+        this.PLAYER = new Player(WORLDFRAME, save.player_x(), save.player_y());
+        this.RANDOM = save.RANDOM;
+        this.INPUT = save.INPUT;
+        this.SEED = save.SEED;
+        this.START = true;
+        ter.renderFrame(WORLDFRAME);
+
     }
 
     public static void main(String[] args) {
         Engine engine = new Engine();
         engine.ter.initialize(WIDTH, HEIGHT);
-        engine.interactWithInputString("n123sswwdasdassadwas");
+        engine.interactWithKeyboard();
     }
 }

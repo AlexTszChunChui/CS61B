@@ -3,7 +3,9 @@ package byow.Core;
 import byow.TileEngine.TETile;
 import byow.TileEngine.Tileset;
 
-public class Player {
+import java.io.Serializable;
+
+public class Player implements Serializable {
     int x;
     int y;
     TETile[][] MAP;
@@ -19,7 +21,7 @@ public class Player {
     }
 
     public void move(int dx, int dy) {
-        if (MAP[x + dx][y + dy].equals(Tileset.FLOOR)) {
+        if (MAP[x + dx][y + dy].character() == Tileset.FLOOR.character()) {
             MAP[x + dx][y + dy] = IMAGE;
             MAP[x][y] = Tileset.FLOOR;
             this.x += dx;
