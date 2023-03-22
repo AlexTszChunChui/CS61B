@@ -75,7 +75,7 @@ public class Engine implements Serializable {
 
         // Split the user input into seed and other command
         input = input.toUpperCase();
-        drawMap(input);
+        //drawMap(input);
         String command = input.replaceAll("N[0-9]+S", "");
         InputSource inputSource = new StringInputSource(command);
         while (inputSource.possibleNextInput()) {
