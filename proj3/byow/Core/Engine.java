@@ -111,13 +111,13 @@ public class Engine implements Serializable {
                 case 'W':
                     if (START) {
                         PLAYER.move(0, 1);
-                        ter.renderFrame(WORLDFRAME);
+                        //ter.renderFrame(WORLDFRAME);
                     }
                     break;
                 case 'S':
                     if (START) {
                         PLAYER.move(0, -1);
-                        ter.renderFrame(WORLDFRAME);
+                        //ter.renderFrame(WORLDFRAME);
                     } else {
                         drawMap(INPUT);
                         START = true;
@@ -126,18 +126,18 @@ public class Engine implements Serializable {
                 case 'A':
                     if (START) {
                         PLAYER.move(-1, 0);
-                        ter.renderFrame(WORLDFRAME);
+                        //ter.renderFrame(WORLDFRAME);
                     }
                     break;
                 case 'D':
                     if (START) {
                         PLAYER.move(1, 0);
-                        ter.renderFrame(WORLDFRAME);
+                        //ter.renderFrame(WORLDFRAME);
                     }
                     break;
                 case 'N':
                     if (!START) {
-                        ter.drawSetup(INPUT);
+                        //ter.drawSetup(INPUT);
                     }
                     break;
                 case 'L':
@@ -191,7 +191,7 @@ public class Engine implements Serializable {
 
     public void loadGame() {
         if (!SAVE.exists()) {
-            
+
         }
         PlayerSave save = (PlayerSave) FileManagement.readObject(SAVE);
         this.WORLDFRAME = save.MAP;
@@ -200,7 +200,7 @@ public class Engine implements Serializable {
         this.INPUT = save.INPUT;
         this.SEED = save.SEED;
         this.START = true;
-        ter.renderFrame(WORLDFRAME);
+        //ter.renderFrame(WORLDFRAME);
 
     }
 
