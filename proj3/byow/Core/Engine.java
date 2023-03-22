@@ -23,7 +23,7 @@ public class Engine implements Serializable {
     public String INPUT = "";
 
     public Engine() {
-        ter.initialize(WIDTH, HEIGHT);
+        //ter.initialize(WIDTH, HEIGHT);
         WORLDFRAME = new TETile[WIDTH][HEIGHT];
         fillBoardWithNothing(WORLDFRAME);
     }
