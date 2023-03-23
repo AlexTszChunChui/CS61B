@@ -10,6 +10,7 @@ public class KeyboardInputSource implements InputSource {
                 char c = Character.toUpperCase(StdDraw.nextKeyTyped());
                 return c;
             }
+            return '\0';
         }
     }
 

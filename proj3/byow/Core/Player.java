@@ -15,9 +15,17 @@ public class Player implements Serializable {
         this.x = x;
         this.y = y;
         this.MAP = tiles;
-        this.IMAGE = Tileset.TREE;
+        this.IMAGE = Tileset.AVATAR;
 
         tiles[x][y] = IMAGE;
+    }
+
+    public int getX() {
+        return this.x;
+    }
+
+    public int getY() {
+        return this.y;
     }
 
     public void move(int dx, int dy) {

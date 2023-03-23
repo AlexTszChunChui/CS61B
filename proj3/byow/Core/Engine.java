@@ -7,11 +7,12 @@ import java.io.File;
 import java.io.IOException;
 import java.io.Serializable;
 import java.util.Random;
+import java.util.concurrent.TimeUnit;
 
 public class Engine implements Serializable {
     TERenderer ter = new TERenderer();
     /* Feel free to change the width and height. */
-    public static final int WIDTH = 150;
+    public static final int WIDTH = 140;
     public static final int HEIGHT = 80;
     public static final File CWD = new File(System.getProperty("user.dir"));
     public static final File SAVE = new File(CWD, "save");
@@ -20,7 +21,9 @@ public class Engine implements Serializable {
     public TETile[][] WORLDFRAME;
     public Player PLAYER;
     public boolean START = false;
+    public boolean FOV = true;
     public String INPUT = "";
+    public GameTime TIME;
 
     public Engine() {
         ter.initialize(WIDTH, HEIGHT);
@@ -38,8 +41,17 @@ public class Engine implements Serializable {
         }
         InputSource inputSource = new KeyboardInputSource();
         while (inputSource.possibleNextInput()) {
+            if (START) {
+                if (TIME.timesUp()) {
+                    gameOver();
+                } else {
+                    renderGamePlay(TIME.timesUsed());
+                }
+            }
             char c = inputSource.getNextKey();
-            action(c);
+            if (c != '\0') {
+                action(c);
+            }
         }
     }
 
@@ -105,34 +117,32 @@ public class Engine implements Serializable {
         if (c == 'Q' && START) {
             save();
             ter.drawOpenMenu();
-        }
-        else {
+        } else if (c == 'Q' && !START) {
+            System.exit(0);
+        } else {
             switch (c) {
                 case 'W':
                     if (START) {
                         PLAYER.move(0, 1);
-                        ter.renderFrame(WORLDFRAME);
                     }
                     break;
                 case 'S':
                     if (START) {
                         PLAYER.move(0, -1);
-                        ter.renderFrame(WORLDFRAME);
                     } else {
                         drawMap(INPUT);
                         START = true;
+                        TIME = new GameTime(180);
                     }
                     break;
                 case 'A':
                     if (START) {
                         PLAYER.move(-1, 0);
-                        ter.renderFrame(WORLDFRAME);
                     }
                     break;
                 case 'D':
                     if (START) {
                         PLAYER.move(1, 0);
-                        ter.renderFrame(WORLDFRAME);
                     }
                     break;
                 case 'N':
@@ -143,6 +153,9 @@ public class Engine implements Serializable {
                 case 'L':
                     if (!START) {
                         loadGame();
+                    }
+                    else {
+                        FOV = !FOV;
                     }
                     break;
                 default:
@@ -163,10 +176,28 @@ public class Engine implements Serializable {
         SEED = Long.parseLong(numberOnly);
         RANDOM = new Random(SEED);
 
-        Dungeon_Map map = new Dungeon_Map(WIDTH, HEIGHT, 30, 5, 18);
+        Dungeon_Map map = new Dungeon_Map(WIDTH, HEIGHT, 100, 5, 18);
         PLAYER = map.drawDungeon(WORLDFRAME, RANDOM);
 
-        ter.renderFrame(WORLDFRAME);
+    }
+
+    public void renderGamePlay(long timeSpent) {
+        if (!FOV) {
+            ter.renderFrame(WORLDFRAME, timeSpent);
+        }
+        else {
+            ter.renderFrameWithSight(WORLDFRAME, PLAYER , timeSpent);
+        }
+    }
+
+    public void gameOver() {
+        WORLDFRAME = new TETile[WIDTH][HEIGHT];
+        RANDOM = null;
+        INPUT = "";
+        START = false;
+        PLAYER = null;
+
+        ter.drawOpenMenu();
     }
 
 
@@ -191,7 +222,7 @@ public class Engine implements Serializable {
 
     public void loadGame() {
         if (!SAVE.exists()) {
-
+            System.exit(0);
         }
         PlayerSave save = (PlayerSave) FileManagement.readObject(SAVE);
         this.WORLDFRAME = save.MAP;
@@ -199,9 +230,10 @@ public class Engine implements Serializable {
         this.RANDOM = save.RANDOM;
         this.INPUT = save.INPUT;
         this.SEED = save.SEED;
-        this.START = true;
-        ter.renderFrame(WORLDFRAME);
+        this.TIME = save.TIME;
 
+        TIME.restart();
+        this.START = true;
     }
 
     public static void main(String[] args) {

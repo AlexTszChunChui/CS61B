@@ -1,5 +1,6 @@
 package byow.TileEngine;
 
+import byow.Core.Player;
 import edu.princeton.cs.introcs.StdDraw;
 
 import java.awt.Color;
@@ -30,7 +31,7 @@ public class TERenderer implements Serializable {
      */
     public void initialize(int w, int h, int xOff, int yOff) {
         this.width = w;
-        this.height = h;
+        this.height = h + 2;
         this.xOffset = xOff;
         this.yOffset = yOff;
         StdDraw.setCanvasSize(width * TILE_SIZE, height * TILE_SIZE);
@@ -84,7 +85,7 @@ public class TERenderer implements Serializable {
      * the screen in tiles.
      * @param world the 2D TETile[][] array to render
      */
-    public void renderFrame(TETile[][] world) {
+    public void renderFrame(TETile[][] world, long time) {
         int numXTiles = world.length;
         int numYTiles = world[0].length;
         Font font = new Font("Monaco", Font.BOLD, TILE_SIZE - 2);
@@ -99,6 +100,33 @@ public class TERenderer implements Serializable {
                 world[x][y].draw(x + xOffset, y + yOffset);
             }
         }
+        drawHug(world, time);
+        StdDraw.show();
+    }
+
+    public void renderFrameWithSight(TETile[][] world, Player player, long time) {
+        int numXTiles = world.length;
+        int numYTiles = world[0].length;
+        Font font = new Font("Monaco", Font.BOLD, TILE_SIZE - 2);
+        StdDraw.setFont(font);
+        StdDraw.clear(new Color(0, 0, 0));
+        int playerX = player.getX();
+        int playerY = player.getY();
+        for (int x = playerX - 2 ; x < playerX + 3; x += 1) {
+            if (x >= 0 && x < numXTiles) {
+                for (int y = playerY - 2;  y < playerY + 3; y += 1) {
+                    if (y >= 0 && y < numYTiles) {
+                        if (world[x][y] == null) {
+                            throw new IllegalArgumentException("Tile at position x=" + x + ", y=" + y
+                                    + " is null.");
+                        }
+                        world[x][y].draw(x + xOffset, y + yOffset);
+                    }
+                }
+            }
+
+        }
+        drawHug(world, time);
         StdDraw.show();
     }
 
@@ -122,5 +150,22 @@ public class TERenderer implements Serializable {
         StdDraw.text(this.width / 2, this.height / 2 + 2, "Please Enter a random seed for generate a dungeon");
         StdDraw.text(this.width / 2, this.height / 2, "Your Seed: " + input);
         StdDraw.show();
+    }
+
+    public void drawHug(TETile[][] world, long time) {
+        Font font = new Font("Monaco", Font.BOLD, 35);
+        StdDraw.setFont(font);
+        StdDraw.setPenColor(Color.CYAN);
+
+        StdDraw.line(0 + xOffset, this.height - 3 + yOffset,
+                this.width + xOffset, this.height - 3 + yOffset);
+        int mouseX = (int) StdDraw.mouseX();
+        int mouseY = (int) StdDraw.mouseY();
+        if (mouseX < width && mouseY < height - 2) {
+            StdDraw.text(0 + 4.5, this.height - 2 + yOffset, world[mouseX][mouseY].description());
+        }
+
+        String remainingTime = String.format("%s: %s", time / 60, time % 60);
+        StdDraw.text(width - 4.5, this.height - 2 + yOffset, remainingTime);
     }
 }

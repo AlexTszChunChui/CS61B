@@ -154,6 +154,6 @@ public class HexWorld {
         Position anchor = new Position(12, 34);
         drawWorld(world, anchor, 3, 4);
 
-        ter.renderFrame(world);
+        ter.renderFrame(world, 0);
     }
 }
