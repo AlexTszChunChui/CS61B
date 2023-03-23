@@ -168,4 +168,16 @@ public class TERenderer implements Serializable {
         String remainingTime = String.format("%s: %s", time / 60, time % 60);
         StdDraw.text(width - 4.5, this.height - 2 + yOffset, remainingTime);
     }
+
+    public void drawEndingScreen(long time) {
+        StdDraw.clear(new Color(0, 0, 0));
+        StdDraw.setPenColor(Color.CYAN);
+        Font font = new Font("Monaco", Font.BOLD, 40);
+        StdDraw.text(this.width / 2, this.height / 2 + 1,
+                "Congratulations! You escaped the dungeon! You are a master adventurer!");
+
+        StdDraw.text(this.width / 2, this.height / 2 - 1.5,
+                String.format("You've only spend %s:%s", time / 60, time % 60));
+        StdDraw.show();
+    }
 }

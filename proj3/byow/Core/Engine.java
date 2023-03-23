@@ -16,12 +16,11 @@ public class Engine implements Serializable {
     public static final int HEIGHT = 80;
     public static final File CWD = new File(System.getProperty("user.dir"));
     public static final File SAVE = new File(CWD, "save");
-    public long SEED;
+    public boolean START = false;
+    public boolean FOV = false;
     public Random RANDOM;
     public TETile[][] WORLDFRAME;
     public Player PLAYER;
-    public boolean START = false;
-    public boolean FOV = true;
     public String INPUT = "";
     public GameTime TIME;
 
@@ -44,6 +43,8 @@ public class Engine implements Serializable {
             if (START) {
                 if (TIME.timesUp()) {
                     gameOver();
+                } else if (PLAYER.escaped()) {
+                    gameComplete();
                 } else {
                     renderGamePlay(TIME.timesUsed());
                 }
@@ -55,27 +56,6 @@ public class Engine implements Serializable {
         }
     }
 
-    /**
-     * Method used for autograding and testing your code. The input string will be a series
-     * of characters (for example, "n123sswwdasdassadwas", "n123sss:q", "lwww". The engine should
-     * behave exactly as if the user typed these characters into the engine using
-     * interactWithKeyboard.
-     *
-     * Recall that strings ending in ":q" should cause the game to quite save. For example,
-     * if we do interactWithInputString("n123sss:q"), we expect the game to run the first
-     * 7 commands (n123sss) and then quit and save. If we then do
-     * interactWithInputString("l"), we should be back in the exact same state.
-     *
-     * In other words, both of these calls:
-     *   - interactWithInputString("n123sss:q")
-     *   - interactWithInputString("lww")
-     *
-     * should yield the exact same world state as:
-     *   - interactWithInputString("n123sssww")
-     *
-     * @param input the input string to feed to your program
-     * @return the 2D TETile[][] representing the state of the world
-     */
     public TETile[][] interactWithInputString(String input) {
         // TODO: Fill out this method so that it run the engine using the input
         // passed in as an argument, and return a 2D tile representation of the
@@ -101,7 +81,6 @@ public class Engine implements Serializable {
         interactWithKeyboard();
         return WORLDFRAME;
     }
-
 
     public static void fillBoardWithNothing(TETile[][] tiles) {
         int height = tiles[0].length;
@@ -173,8 +152,8 @@ public class Engine implements Serializable {
         if (numberOnly.length() < 1) {
             return;
         }
-        SEED = Long.parseLong(numberOnly);
-        RANDOM = new Random(SEED);
+        long seed = Long.parseLong(numberOnly);
+        RANDOM = new Random(seed);
 
         Dungeon_Map map = new Dungeon_Map(WIDTH, HEIGHT, 100, 5, 18);
         PLAYER = map.drawDungeon(WORLDFRAME, RANDOM);
@@ -191,15 +170,21 @@ public class Engine implements Serializable {
     }
 
     public void gameOver() {
-        WORLDFRAME = new TETile[WIDTH][HEIGHT];
-        RANDOM = null;
-        INPUT = "";
-        START = false;
-        PLAYER = null;
-
+        reset();
         ter.drawOpenMenu();
     }
 
+    public void gameComplete() {
+        ter.drawEndingScreen(TIME.timesUsed());
+        reset();
+        try {
+            Thread.sleep(15000);
+            ter.drawOpenMenu();
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        }
+
+    }
 
     public void save() {
         if (!SAVE.exists()) {
@@ -211,13 +196,17 @@ public class Engine implements Serializable {
         }
         PlayerSave save = new PlayerSave(this, PLAYER);
         FileManagement.writeObject(SAVE, save);
+        reset();
+
+        fillBoardWithNothing(WORLDFRAME);
+    }
+
+    private void reset() {
         WORLDFRAME = new TETile[WIDTH][HEIGHT];
         RANDOM = null;
         INPUT = "";
         START = false;
         PLAYER = null;
-
-        fillBoardWithNothing(WORLDFRAME);
     }
 
     public void loadGame() {
@@ -229,7 +218,6 @@ public class Engine implements Serializable {
         this.PLAYER = new Player(WORLDFRAME, save.player_x(), save.player_y());
         this.RANDOM = save.RANDOM;
         this.INPUT = save.INPUT;
-        this.SEED = save.SEED;
         this.TIME = save.TIME;
 
         TIME.restart();

@@ -16,7 +16,6 @@ public class PlayerSave implements Serializable {
 
     public PlayerSave(Engine engine, Player player) {
         this.MAP = engine.WORLDFRAME;
-        this.SEED = engine.SEED;
         this.RANDOM = engine.RANDOM;
         this.INPUT = engine.INPUT;
         this.USER = new User(player.x, player.y, player.IMAGE);

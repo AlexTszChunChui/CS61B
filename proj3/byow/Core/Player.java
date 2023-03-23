@@ -10,6 +10,8 @@ public class Player implements Serializable {
     int y;
     TETile[][] MAP;
     TETile IMAGE;
+    boolean KEY = false;
+    boolean ESCAPE = false;
 
     public Player (TETile[][] tiles, int x, int y) {
         this.x = x;
@@ -34,6 +36,18 @@ public class Player implements Serializable {
             MAP[x][y] = Tileset.FLOOR;
             this.x += dx;
             this.y += dy;
+        } else if (MAP[x + dx][y + dy].character() == Tileset.KEY.character()) {
+            this.KEY = true;
+            MAP[x + dx][y + dy] = IMAGE;
+            MAP[x][y] = Tileset.FLOOR;
+            this.x += dx;
+            this.y += dy;
+        } else if (MAP[x + dx][y + dy].character() == Tileset.EXIT.character() && KEY) {
+           this.ESCAPE = true;
         }
+    }
+
+    public boolean escaped() {
+        return this.ESCAPE;
     }
 }

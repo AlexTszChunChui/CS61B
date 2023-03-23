@@ -57,6 +57,7 @@ public class Dungeon_Map {
             }
         }
         drawTunnels(tiles, rooms);
+        generateKeyAndExit(tiles, rooms, random);
         return generatePlayer(tiles, rooms);
     }
 
@@ -170,5 +171,14 @@ public class Dungeon_Map {
         Rect room = lst.get(0);
         Player player = new Player(tiles, room.centerX(), room.centerY());
         return player;
+    }
+
+    public void generateKeyAndExit (TETile[][] tiles, List<Rect> lst, Random random) {
+        Rect room = lst.get(lst.size() - 1);
+        tiles[room.centerX()][room.centerY()] = Tileset.KEY;
+
+        int index = random.nextInt(27) + 1;
+        Rect exit = lst.get(index);
+        tiles[exit.centerX()][exit.centerY()] = Tileset.EXIT;
     }
 }
