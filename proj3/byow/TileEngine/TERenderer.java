@@ -85,7 +85,7 @@ public class TERenderer implements Serializable {
      * the screen in tiles.
      * @param world the 2D TETile[][] array to render
      */
-    public void renderFrame(TETile[][] world, long time) {
+    public void renderFrame(TETile[][] world, Player player, long time) {
         int numXTiles = world.length;
         int numYTiles = world[0].length;
         Font font = new Font("Monaco", Font.BOLD, TILE_SIZE - 2);
@@ -100,7 +100,7 @@ public class TERenderer implements Serializable {
                 world[x][y].draw(x + xOffset, y + yOffset);
             }
         }
-        drawHug(world, time);
+        drawHug(world, time, player);
         StdDraw.show();
     }
 
@@ -126,7 +126,7 @@ public class TERenderer implements Serializable {
             }
 
         }
-        drawHug(world, time);
+        drawHug(world, time, player);
         StdDraw.show();
     }
 
@@ -137,7 +137,7 @@ public class TERenderer implements Serializable {
         StdDraw.setFont(font);
         StdDraw.text(this.width / 2, this.height / 2, "New Game(n)");
         StdDraw.text(this.width / 2, this.height / 2 - 3, "Load Game(l)");
-        StdDraw.text(this.width / 2, this.height / 2 - 6, "Options(o)");
+        StdDraw.text(this.width / 2, this.height / 2 - 6, "Control(c)");
         StdDraw.text(this.width / 2, this.height / 2 - 9, "Quit to Desktop(q)");
         StdDraw.show();
     }
@@ -152,7 +152,7 @@ public class TERenderer implements Serializable {
         StdDraw.show();
     }
 
-    public void drawHug(TETile[][] world, long time) {
+    public void drawHug(TETile[][] world, long time, Player player) {
         Font font = new Font("Monaco", Font.BOLD, 35);
         StdDraw.setFont(font);
         StdDraw.setPenColor(Color.CYAN);
@@ -165,8 +165,13 @@ public class TERenderer implements Serializable {
             StdDraw.text(0 + 4.5, this.height - 2 + yOffset, world[mouseX][mouseY].description());
         }
 
-        String remainingTime = String.format("%s: %s", time / 60, time % 60);
+        String remainingTime = String.format("%s:%s", time / 60, time % 60);
         StdDraw.text(width - 4.5, this.height - 2 + yOffset, remainingTime);
+        if (!player.findKey()) {
+            StdDraw.text(width / 2, this.height - 2 + yOffset, "Find the Key first!");
+        } else {
+            StdDraw.text(width / 2, this.height - 2 + yOffset, "You have found the key, Now find the exit!");
+        }
     }
 
     public void drawEndingScreen(long time) {
@@ -178,6 +183,21 @@ public class TERenderer implements Serializable {
 
         StdDraw.text(this.width / 2, this.height / 2 - 1.5,
                 String.format("You've only spend %s:%s", time / 60, time % 60));
+        StdDraw.show();
+    }
+
+    public void drawControlScreen() {
+        StdDraw.clear(new Color(0, 0, 0));
+        StdDraw.setPenColor(Color.CYAN);
+        Font font = new Font("Monaco", Font.BOLD, 25);
+        StdDraw.setFont(font);
+        StdDraw.text(this.width / 2, this.height / 2, "Up (w)");
+        StdDraw.text(this.width / 2, this.height / 2 - 2, "Down (s)");
+        StdDraw.text(this.width / 2, this.height / 2 - 4, "Left (a)");
+        StdDraw.text(this.width / 2, this.height / 2 - 6, "Right (d)");
+        StdDraw.text(this.width / 2, this.height / 2 - 8, "Map sight / Player sight (l)");
+        StdDraw.text(this.width / 2, this.height / 2 - 10, "Quit to Menu & Save (q)");
+        StdDraw.text(this.width / 2, this.height / 2 - 15, "Back to Main menu (ESC)");
         StdDraw.show();
     }
 }

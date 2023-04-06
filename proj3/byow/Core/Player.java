@@ -50,4 +50,8 @@ public class Player implements Serializable {
     public boolean escaped() {
         return this.ESCAPE;
     }
+
+    public boolean findKey() {
+        return this.KEY;
+    }
 }

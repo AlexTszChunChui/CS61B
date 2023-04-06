@@ -137,6 +137,9 @@ public class Engine implements Serializable {
                         FOV = !FOV;
                     }
                     break;
+                case 'C':
+                    controlMenu();
+                    break;
                 default:
                     if (!START) {
                         INPUT += c;
@@ -162,7 +165,7 @@ public class Engine implements Serializable {
 
     public void renderGamePlay(long timeSpent) {
         if (!FOV) {
-            ter.renderFrame(WORLDFRAME, timeSpent);
+            ter.renderFrame(WORLDFRAME, PLAYER, timeSpent);
         }
         else {
             ter.renderFrameWithSight(WORLDFRAME, PLAYER , timeSpent);
@@ -222,6 +225,18 @@ public class Engine implements Serializable {
 
         TIME.restart();
         this.START = true;
+    }
+
+    public void controlMenu() {
+        ter.drawControlScreen();
+        InputSource inputSource = new KeyboardInputSource();
+        while (inputSource.possibleNextInput()) {
+            char c = inputSource.getNextKey();
+            if (c == '\u001B') {
+                ter.drawOpenMenu();
+                break;
+            }
+        }
     }
 
     public static void main(String[] args) {
