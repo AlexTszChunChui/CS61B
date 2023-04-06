@@ -1,6 +1,6 @@
 # CS61B SP21
 
-This repository contains my solutions to the assignments and projects for CS61B: Data Structures and Algorithms, a course offered by the University of California, Berkeley.
+This repository contains my solutions to the assignments and projects for CS61B: Data Structures and Algorithms Spring 2021 semester, a course offered by the University of California, Berkeley.
 
 ## Overview
 
